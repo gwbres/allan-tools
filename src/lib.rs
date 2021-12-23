@@ -42,7 +42,7 @@ pub enum Deviation {
 /// taus: desired `tau` offsets (s)   
 /// sampling_rate: acquisition rate (Hz)   
 /// is_fractionnal: true if input vector is made of fractionnal (n.a) data
-/// returns: (adev, err) : deviations and error bars
+/// returns: (adev, err) : variance and error bars for each feasible `tau`
 pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal: bool) -> Result<Vec<f64>, Error> {
     tau::tau_sanity_checks(&taus)?;
     
@@ -52,13 +52,19 @@ pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal:
     };
 
     let tau_0 = 1.0_f64 / sampling_rate; 
-    let mut devs: Vec<f64> = Vec::with_capacity(taus.len());
+    let mut vars: Vec<f64> = Vec::with_capacity(taus.len()); //TODO revoir ce N
+    let mut errs: Vec<f64> = Vec::with_capacity(taus.len());
 
     for i in 0..taus.len() {
-        devs.push(calc_avar(&data, taus[i], tau_0)) 
+        if let (Some(v),Some(e)) = calc_avar(&data, taus[i], tau_0) {
+            vars.push(v);
+            errs.push(e)
+        } else {
+            break
+        }
     }
 
-    Ok(devs)
+    Ok((vars, errs))
 }
 
 /// Computes Allan deviation for given taus from given data serie.   
@@ -74,7 +80,7 @@ pub fn adev (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal:
 
 /// Computes Allan variance @ given tau
 /// on input data sampled every tau_0 (s) [sampling period]
-fn calc_avar (data: &Vec<f64>, tau: f64, tau_0: f64) -> f64 {
+fn calc_avar (data: &Vec<f64>, tau: f64, tau_0: f64) -> Result<f64, Error> {
     let n = (tau / tau_0) as usize;
     let m = (data.len() -1)/n; 
     let mut sum = 0.0_f64;

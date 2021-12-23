@@ -10,7 +10,7 @@ pub enum TauAxis {
 
 /// `TauAxis` related errors 
 #[derive(Error, Debug)]
-pub enum TauAxisError {
+pub enum Error {
     #[error("encountered non valid `tau` < 0 value")]
     NegativeTauValue, 
     #[error("encountered non valid `tau` == 0")]
@@ -27,35 +27,23 @@ impl Default for TauAxis {
 }
 
 /// Returns Ok() if given tau axis passes standard sanity checks
-pub fn tau_sanity_checks (taus: &Vec<f64>) -> Result<(), TauAxisError> {
+pub fn tau_sanity_checks (taus: &Vec<f64>) -> Result<(), Error> {
     for i in 0..taus.len() {
         if taus[i] < 0.0_f64 {
-            return Err(TauAxisError::NegativeTauValue)
+            return Err(Error::NegativeTauValue)
         }
 
         if taus[i] == 0.0_f64 {
-            return Err(TauAxisError::NullTauValue)
+            return Err(Error::NullTauValue)
         }
 
         if i > 0 {
             if taus[i] <= taus[i-1] {
-                return Err(TauAxisError::InvalidTauShape)
+                return Err(Error::InvalidTauShape)
             }
         }
     }
     Ok(())
-}
-
-/// Crates `tau` axis [1: `tau_m`]
-/// `tau_m` < 2^32 for TauAxis::All
-pub fn tau_generator (axis: TauAxis, tau_m: f64) -> Vec<f64> {
-    match axis {
-        TauAxis::Octave => log2_tau_generator(tau_m),
-        TauAxis::Decade => log10_tau_generator(tau_m),
-        TauAxis::All    => (1..tau_m as u32)
-                        .map(f64::from)
-                            .collect(),
-    }
 }
 
 /// Generate log(base) `TauAxis`
@@ -73,6 +61,18 @@ fn log_n_tau_generator (tau_m: f64, base: f64) -> Vec<f64> {
 fn log2_tau_generator (tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_m, 2.0_f64) }
 /// Generates `Log10` axis
 fn log10_tau_generator (tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_m, 10.0_f64) }
+
+/// Crates `tau` axis [1: `tau_m`]
+/// `tau_m` < 2^32 for TauAxis::All
+pub fn tau_generator (axis: TauAxis, tau_m: f64) -> Vec<f64> {
+    match axis {
+        TauAxis::Octave => log2_tau_generator(tau_m),
+        TauAxis::Decade => log10_tau_generator(tau_m),
+        TauAxis::All    => (1..tau_m as u32)
+                        .map(f64::from)
+                            .collect(),
+    }
+}
 
 #[cfg(test)]
     mod tests {

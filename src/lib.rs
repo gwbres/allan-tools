@@ -14,10 +14,20 @@ mod tau;
 mod noise;
 mod utils;
 
+use thiserror::Error;
+
+/// describes error related to deviation computations
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("`tau` axis error")]
+    TauAxisEror(#[from] tau::Error), 
+    #[error("non feasible deviation - missing some more samples")]
+    NotEnoughSamplesError, 
+}
+
 /// describes all known computations
 #[derive(Clone, Copy)]
 pub enum Deviation {
-    Standard, // `std` deviation
     Allan,    // `allan` deviation
     Modified, // `modified` deviation
     Hadamard, // `hadamard` deviation
@@ -29,15 +39,12 @@ pub enum Deviation {
 /// Computes Allan variance of given input data 
 /// for given tau values.  
 /// data: input vector   
-/// tau: input `tau` axis
+/// taus: desired `tau` offsets (s)   
 /// sampling_rate: acquisition rate (Hz)   
 /// is_fractionnal: true if input vector is made of fractionnal (n.a) data
 /// returns: (adev, err) : deviations and error bars
-pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal: bool) -> Result<Vec<f64>, tau::TauAxisError> {
-    match tau::tau_sanity_checks(&taus) {
-        Ok(_) => {},
-        Err(e) => return Err(e),
-    }
+pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal: bool) -> Result<Vec<f64>, Error> {
+    tau::tau_sanity_checks(&taus)?;
     
     let data = match is_fractionnal {
         false => data.clone(),
@@ -52,6 +59,17 @@ pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal:
     }
 
     Ok(devs)
+}
+
+/// Computes Allan deviation for given taus from given data serie.   
+/// taus: desired tau offsets (s)   
+/// sampling_rate: acquisition rate (Hz)   
+pub fn adev (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal: bool) -> Result<Vec<f64>, Error> {
+    let mut var = avar(data, taus, sampling_rate, is_fractionnal)?;
+    for i in 0..var.len() {
+        var[i] = var[i].powf(0.5_f64)
+    }
+    Ok(var)
 }
 
 /// Computes Allan variance @ given tau

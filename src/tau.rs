@@ -13,6 +13,10 @@ pub enum TauAxis {
 pub enum TauAxisError {
     #[error("encountered non valid `tau` < 0 value")]
     NegativeTauValue, 
+    #[error("encountered non valid `tau` == 0")]
+    NullTauValue, 
+    #[error("`tau` axis should only comprise increasing values")]
+    InvalidTauShape,
 }
 
 impl Default for TauAxis {
@@ -23,10 +27,20 @@ impl Default for TauAxis {
 }
 
 /// Returns Ok() if given tau axis passes standard sanity checks
-pub fn tau_sanity_checks (taus: Vec<f64>) -> Result<(), TauAxisError> {
+pub fn tau_sanity_checks (taus: &Vec<f64>) -> Result<(), TauAxisError> {
     for i in 0..taus.len() {
         if taus[i] < 0.0_f64 {
             return Err(TauAxisError::NegativeTauValue)
+        }
+
+        if taus[i] == 0.0_f64 {
+            return Err(TauAxisError::NullTauValue)
+        }
+
+        if i > 0 {
+            if taus[i] <= taus[i-1] {
+                return Err(TauAxisError::InvalidTauShape)
+            }
         }
     }
     Ok(())

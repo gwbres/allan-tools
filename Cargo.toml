@@ -5,7 +5,7 @@ authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 
 homepage = "https://github.com/gwbres/allan-tools"
 readme = "README.md"
-keywords = ["allan", "variance", "deviation", "stability", "time", "frequency"]
+keywords = ["allan", "deviation", "stability", "time", "frequency"]
 
 [dev-dependencies]
 probability = "0.15.8"

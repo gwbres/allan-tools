@@ -8,6 +8,7 @@
 //! url: <https://github.com/aewallin/allantools>
 
 mod tau;
+mod utilities;
 
 /// describes all known computations
 #[derive(Clone, Copy)]

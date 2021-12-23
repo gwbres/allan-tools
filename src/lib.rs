@@ -55,7 +55,7 @@ pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal:
     let mut devs: Vec<f64> = Vec::with_capacity(taus.len());
 
     for i in 0..taus.len() {
-        devs[i] = calc_avar(&data, taus[i], tau_0); 
+        devs.push(calc_avar(&data, taus[i], tau_0)) 
     }
 
     Ok(devs)
@@ -97,13 +97,11 @@ mod tests {
 
     #[test]
     fn test_avar() {
-        //let taus = tau::tau_generator(tau::TauAxis::Octave, 256.0_f64); 
+        let mut data = utils::random(1024); 
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
         //let normal = rand::distributions::Normal::new(0.5, 3.0); 
         //let mut rng = rand::thread_rng();
-        //let mut data: Vec<f64> = Vec::with_capacity(1024);
-        //for i in 0..1024 {
-        //    data[i] = rand::thread_rng().sample(normal);
-        //}
-        //let avar = avar(data, taus, 1.0, false);
+        let adev = adev(data, taus, 1.0, false);
+        println!("ADEV \n {:#?}", adev)
     }
 }

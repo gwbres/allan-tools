@@ -16,13 +16,14 @@ impl Default for TauAxis {
 /// `tau_m` < 2^32 for TauAxis::All
 pub fn tau_generator (axis: TauAxis, tau_m: f64) -> Vec<f64> {
     match axis {
-        TauAxis::Log2  => log2_axis(tau_m),
-        TauAxis::Log10 => log10_axis(tau_m),
-        TauAxis::All   => (1..tau_m as u32).map(f64::from).collect(),
+        TauAxis::Log2  => log2_tau_generator(tau_m),
+        TauAxis::Log10 => log10_tau_generator(tau_m),
+        TauAxis::All   => (1..tau_m as u32)
+                            .map(f64::from).collect(),
     }
 }
 
-fn log2_axis (tau_m: f64) -> Vec<f64> {
+fn log2_tau_generator (tau_m: f64) -> Vec<f64> {
     let mut tau = 1.0_f64;
     let mut ret: Vec<f64> = Vec::new();
     while tau <= tau_m {
@@ -32,7 +33,7 @@ fn log2_axis (tau_m: f64) -> Vec<f64> {
     ret
 }
 
-fn log10_axis (tau_m: f64) -> Vec<f64> {
+fn log10_tau_generator (tau_m: f64) -> Vec<f64> {
     let mut tau = 1.0_f64;
     let mut ret: Vec<f64> = Vec::new();
     while tau <= tau_m {

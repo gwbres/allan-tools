@@ -10,6 +10,10 @@ description = "Package to compute Allan & related statistics"
 edition = "2018"
 readme = "README.md"
 
+[dependencies]
+thiserror = "1"
+statistical = "1.0.0"
+
 [dev-dependencies]
 probability = "0.15.8"
 rand = "0.3.16"

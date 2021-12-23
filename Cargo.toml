@@ -6,6 +6,7 @@ authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 categories = ["science","parsing"]
 homepage = "https://github.com/gwbres/allan-tools"
 keywords = ["allan", "deviation", "stability", "time", "frequency"]
+description = "Package to compute Allan & related statistics"
 edition = "2018"
 readme = "README.md"
 

@@ -1,7 +1,6 @@
 //! tools / utilities to generate noise distributions
 
 use crate::utils;
-//use rand::prelude::*;
 
 /// Generates `white` noise distribution of desired `size`
 /// and desired Power Spectral Density [dBc/Hz]
@@ -17,7 +16,7 @@ mod tests {
 
     #[test]
     fn test_white_noise() {
-        let noise = white_noise(-10.0, 10.0E3, 16);
+        let noise = white_noise(-10.0, 1.0, 16);
         println!("{:#?}", noise)
     }
 }

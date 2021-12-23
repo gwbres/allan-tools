@@ -1,11 +1,13 @@
 [package]
 name = "allan-tools"
 version = "0.0.1"
+license-file = "LICENSE"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
-
+categories = ["science","parsing"]
 homepage = "https://github.com/gwbres/allan-tools"
-readme = "README.md"
 keywords = ["allan", "deviation", "stability", "time", "frequency"]
+edition = "2018"
+readme = "README.md"
 
 [dev-dependencies]
 probability = "0.15.8"

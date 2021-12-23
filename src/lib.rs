@@ -11,7 +11,8 @@
 //! url: <https://github.com/aewallin/allantools>
 
 mod tau;
-mod utilities;
+mod noise;
+mod utils;
 
 /// describes all known computations
 #[derive(Clone, Copy)]
@@ -40,7 +41,7 @@ pub fn avar (data: Vec<f64>, taus: Vec<f64>, sampling_rate: f64, is_fractionnal:
     
     let data = match is_fractionnal {
         false => data.clone(),
-        true => utilities::fractionnal_integral(data, sampling_rate),
+        true => utils::fractionnal_integral(data, sampling_rate),
     };
 
     let tau_0 = 1.0_f64 / sampling_rate; 
@@ -75,7 +76,6 @@ fn calc_avar (data: &Vec<f64>, tau: f64, tau_0: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::prelude::*;
 
     #[test]
     fn test_avar() {

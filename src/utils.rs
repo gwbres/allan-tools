@@ -1,3 +1,9 @@
+//! tools / utilities to manipulate
+//! datasets & vectors
+
+use rand::prelude::*;
+use rand_distr::StandardNormal;
+
 /// numpy::cumsum direct equivalent 
 pub fn cumsum (data: Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(data.len());
@@ -15,6 +21,15 @@ pub fn diff (data: Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
         ret.push((data[i] - data[i-1]) * normalization.unwrap_or(1.0_f64))
     }
     ret    
+}
+
+/// Generate `size` random symbols  0 < x <= 1.0f
+pub fn random (size: usize) -> Vec<f64> {
+    let mut ret: Vec<f64> = Vec::with_capacity(size);
+    for i in 0..size {
+        ret.push(rand::thread_rng().sample(StandardNormal))
+    }
+    ret
 }
 
 /// normalizes data[] by 1/norm.   
@@ -46,6 +61,9 @@ pub fn fractionnal_integral (data: Vec<f64>, sample_rate: f64) -> Vec<f64> {
     cumsum(data, Some(dt))
 }
 
+/// Macro to convert fractionnal frequency data (n.a) to phase time (s) 
+pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64> { fractionnal_integral(frequency, f_0) }
+
 /// Computes derivative,
 /// converts data to fractionnal data   
 /// data: integrated data   
@@ -61,7 +79,7 @@ pub fn derivative (data: Vec<f64>, sample_rate: f64) -> Vec<f64> {
 pub fn phase_to_radians (phase: Vec<f64>, f_0: f64) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(phase.len());
     for i in 0..phase.len() {
-        ret.push(2.0_f64*std::f64::consts::PI * f_0 * phase[i])
+        ret.push(2.0_f64 * std::f64::consts::PI * f_0 * phase[i])
     }
     ret
 }

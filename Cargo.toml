@@ -13,7 +13,8 @@ readme = "README.md"
 [dependencies]
 thiserror = "1"
 statistical = "1.0.0"
+rand = "0.8.4"
+rand_distr = "0.4.2"
 
 [dev-dependencies]
 probability = "0.15.8"
-rand = "0.3.16"

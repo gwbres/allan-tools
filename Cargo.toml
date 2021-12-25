@@ -18,3 +18,4 @@ rand_distr = "0.4.2"
 
 [dev-dependencies]
 probability = "0.15.8"
+gnuplot = "0.0.37"

@@ -41,7 +41,7 @@ pub enum Deviation {
 /// is_fractionnal: true if input vector is made of fractionnal (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (adev, err) : deviations & error bars for each feasible `tau`
-pub fn deviation (data: Vec<f64>, taus: Vec<f64>, deviation: Deviation, is_fractionnal: bool, overlapping: bool) 
+pub fn deviation (data: Vec<f64>, taus: &Vec<f64>, deviation: Deviation, is_fractionnal: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
@@ -155,16 +155,50 @@ fn calc_tdev (data: &Vec<f64>, tau: f64) -> Result<(f64,f64), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};
 
     #[test]
     fn test_adev() {
-        let mut data = utils::random(1024); 
+        let mut data = utils::random(100000); 
         println!("DATA \n {:#?}", data);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let dev = deviation(data, taus, Deviation::Allan, false, false);
-        println!("ADEV \n {:#?}", dev)
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let dev = deviation(data.clone(), &taus, Deviation::Allan, true, false)
+            .unwrap();
+        
+        let x: Vec<u32> = (0..1024).collect(); 
+        let mut fg = Figure::new();
+        fg.set_title("ADEV");
+        fg.axes2d()
+            .set_x_grid(true)
+            .set_x_log(Some(10.0_f64))
+            .set_y_grid(true)
+            .set_y_log(Some(10.0_f64))
+            .lines(&taus, &dev.0, &[
+                Caption("ADEV"), 
+                Color("blue"), 
+                PointSize(10.0),
+                PointSymbol('x'),
+            ]);
+        
+        fg.show();
+        let dev = deviation(data.clone(), &taus, Deviation::ModifiedAdev, true, false)
+            .unwrap();
+        
+        fg.axes2d()
+            .set_x_grid(true)
+            .set_x_log(Some(10.0_f64))
+            .set_y_grid(true)
+            .set_y_log(Some(10.0_f64))
+            .lines(&taus, &dev.0, &[
+                Caption("MDEV"), 
+                Color("red"), 
+                PointSize(10.0),
+                PointSymbol('x'),
+            ]);
+        
+        fg.show();
     }
-    
+/*    
     #[test]
     fn test_mdev() {
         let mut data = utils::random(1024); 
@@ -182,4 +216,5 @@ mod tests {
         let dev = deviation(data, taus, Deviation::TimeDeviation, false, false);
         println!("TDEV \n {:#?}", dev)
     }
+*/
 }

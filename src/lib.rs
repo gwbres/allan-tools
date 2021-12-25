@@ -162,35 +162,30 @@ mod tests {
         let mut data = utils::random(100000); 
         println!("DATA \n {:#?}", data);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let dev = deviation(data.clone(), &taus, Deviation::Allan, true, false)
+        let adev_pm = deviation(data.clone(), &taus, Deviation::Allan, false, true)
+            .unwrap();
+        
+        let adev_fm = deviation(data.clone(), &taus, Deviation::Allan, true, true)
             .unwrap();
         
         let x: Vec<u32> = (0..1024).collect(); 
         let mut fg = Figure::new();
-        fg.set_title("ADEV");
+        
+        fg.set_title("ADEV (phase/freq)");
+
         fg.axes2d()
             .set_x_grid(true)
             .set_x_log(Some(10.0_f64))
             .set_y_grid(true)
             .set_y_log(Some(10.0_f64))
-            .lines(&taus, &dev.0, &[
-                Caption("ADEV"), 
+            .lines(&taus, &adev_pm.0, &[
+                Caption("ADEV (PM)"), 
                 Color("blue"), 
                 PointSize(10.0),
                 PointSymbol('x'),
-            ]);
-        
-        fg.show();
-        let dev = deviation(data.clone(), &taus, Deviation::ModifiedAdev, true, false)
-            .unwrap();
-        
-        fg.axes2d()
-            .set_x_grid(true)
-            .set_x_log(Some(10.0_f64))
-            .set_y_grid(true)
-            .set_y_log(Some(10.0_f64))
-            .lines(&taus, &dev.0, &[
-                Caption("MDEV"), 
+            ])
+            .lines(&taus, &adev_fm.0, &[
+                Caption("ADEV (FM)"), 
                 Color("red"), 
                 PointSize(10.0),
                 PointSymbol('x'),

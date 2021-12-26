@@ -40,7 +40,7 @@ Compute Allan Deviation over a serie of fractionnal error
   let (oadev, errs) = deviation(&data, taus, Deviation::Allan, true, true);
 ```
 
-### Integrated data & noise generators
+### Data & Noise generators
 
 Some data generators were integrated or develpped for testing purposes:
 
@@ -52,7 +52,7 @@ Some data generators were integrated or develpped for testing purposes:
   let x = allantools::noise::white_noise(psd, fs, 10000); // 10k samples
 ```
 
-Some data generators were integrated or develpped for testing purposes:
+<img src="tests/white-noise.png" alt="alt text" width="200"/>
 
 * Pink noise generator produces a -10dB/dec shape when raw data is considered,
 or a -5dB/dec shape if we're considering fractionnal data
@@ -63,6 +63,8 @@ or a -5dB/dec shape if we're considering fractionnal data
   let a0_1hz = -10; // [dB] = level @ 1Hz
   let x = allantools::noise::pink_noise(a0_1hz, psd, fs, 1024); // 1k samples
 ```
+
+<img src="tests/pink-noise.png" alt="alt text" width="200"/>
 
 ### Tools & utilities
 

@@ -14,8 +14,8 @@ pub fn pink_noise (psd: f64, sample_rate: f64, size: usize) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(size);
     let white = white_noise(psd, sample_rate, size);
     let (mut b0,mut b1,mut b2,mut b3,
-        mut b4,mut b5,mut pink,mut b6) = 
-            (0.0_f64,0.0_f64,0.0_f64,0.0_f64,
+        mut b4,mut b5,mut b6) = 
+            (0.0_f64,0.0_f64,0.0_f64,
                 0.0_f64,0.0_f64,0.0_f64,0.0_f64);
     for i in 0..size {
         b0 = 0.99886 * b0 + white[i] * 0.0555179;
@@ -24,7 +24,7 @@ pub fn pink_noise (psd: f64, sample_rate: f64, size: usize) -> Vec<f64> {
         b3 = 0.86650 * b3 + white[i] * 0.3104856;
         b4 = 0.55000 * b4 + white[i] * 0.5329522;
         b5 = -0.7616 * b5 - white[i] * 0.0168980;
-        pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white[i] * 0.5362;
+        let pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white[i] * 0.5362;
         b6 = white[i] * 0.115926;
         ret.push(pink)
     }
@@ -36,7 +36,6 @@ mod tests {
     use super::*;
     use crate::utils;
     use crate::plotutils;
-    use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};
 
     #[test]
     fn test_white_noise_generator() {

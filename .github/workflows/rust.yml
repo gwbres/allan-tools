@@ -19,4 +19,7 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install 
+        cargo test -- --nocapture

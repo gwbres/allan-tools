@@ -62,4 +62,23 @@ or a -5dB/dec shape if we're considering fractionnal data
 
 ### Tools / utilities
 
-TODO
+[NIST Power Law identification method[[46]]](https://www.nist.gov/publications/handbook-frequency-stability-analysis)   
+
+This is a useful macro to identify noise processes contained in a data serie.  
+In other words, this tells you how the data serie behaves.
+
+```rust
+  let x = produce_some_data();
+  let exponents = allantools::nist_power_law_identifier(&x, None);
+```
+
+One can use the optionnal "min_dist" attribute to customize the study
+
+
+```rust
+  let x = produce_some_data(); // 1k symbols
+  // default min_dist=10 -> 1k/10 exponents to be identified
+  let exponents = allantools::nist_power_law_identifier(&x, None);
+    // 1k/100 exponents to be identified
+  let exponents = allantools::nist_power_law_identifier(&x, Some(100));
+```

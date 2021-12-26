@@ -148,6 +148,41 @@ fn calc_tdev (data: &Vec<f64>, tau: f64) -> Result<(f64,f64), Error> {
     Ok((mdev * tau / (3.0_f64).powf(0.5_f64), err))
 }
 
+/// Structure optimized for `real time` / `rolling` computation,   
+/// refer to dedicated documentation
+pub struct RealTime {
+    buffer: Vec<f64>,
+    taus: Vec<f64>,
+    devs: Vec<f64>,
+}
+
+impl RealTime {
+
+    /// Pushes 1 symbol into the core
+    pub fn push (&mut self, sample: f64) { 
+        self.buffer.push(sample); 
+    }
+    
+    /// Pushes n symbols into the core
+    pub fn push_n (&mut self, samples: &Vec<f64>) { 
+        for i in 0..samples.len() {
+            self.push(samples[i]) 
+        }
+    }
+
+    // Returns (taus, devs, errs) triplet:   
+    // taus: currently evaluated time offsets (s)   
+    // devs: related adev estimates (n.a)   
+    // errs: error bar for each adev estimate
+    //pub fn get (&self) -> (Vec<f64>,Vec<f64>,Vec<f64>) {
+    //    (self.taus, self.devs, self.errs)
+    //}
+
+    //fn process (&self) -> Option<(f64, f64, f64)> {
+    //    None
+    //}
+}
+
 #[cfg(test)]
 pub mod plotutils;
 
@@ -169,7 +204,7 @@ mod tests {
     #[test]
     fn test_adev_whitefm() {
         let wn = noise::white_noise(-10.0, 1.0, 1000000);
-        let taus = tau::tau_generator(tau::TauAxis::All, 10000.0); 
+        let taus = tau::tau_generator(tau::TauAxis::Decade, 10000.0); 
         let (dev, err) = deviation(wn.clone(), &taus, Deviation::Allan, true, false)
             .unwrap();
         plotutils::plot2d(
@@ -181,7 +216,7 @@ mod tests {
     }
     #[test]
     fn test_adev_pinkpm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 100000);
+        let wn = noise::pink_noise(-10.0, 1.0, 1000000);
         let taus = tau::tau_generator(tau::TauAxis::All, 100000.0); 
         let (dev, err) = deviation(wn.clone(), &taus, Deviation::Allan, false, false)
             .unwrap();

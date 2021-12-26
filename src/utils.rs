@@ -155,8 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn test_power_law_identifier() {
-        // pre validated noise processes 
+    fn test_power_law_identifier_against_white_noise() {
         let data : Vec<f64> = vec!
 [ 2.07764065e-01 , 3.68862105e-01 ,-3.76029189e-01 ,-2.67755620e-01, 
   6.88324037e-02 , 4.92092027e-01 ,-3.63910303e-01 , 3.74569714e-02,
@@ -228,7 +227,9 @@ mod tests {
                 assert_eq!(e, 0)
             }
         }
-        
+    }      
+    #[test]
+    fn test_power_law_identifier_against_pink_noise() {
         let data : Vec<f64> = vec!
 [ -7.66907221 , -4.13157021 , -4.42014171 , -3.98676303 , -5.65894193,  
   -7.30877706 , -6.96322893 , -4.87095624 , -6.58496316 , -6.47917415,
@@ -288,6 +289,5 @@ mod tests {
                 assert_eq!(e, -1)
             }
         }
-
     }
 }

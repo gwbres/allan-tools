@@ -84,14 +84,14 @@ the lib does not check for repeated &#964; offsets at the moment
 A Tau axis generator is embedded, for ease of use. Several axis are built in:
 
 * TauAxis::Octave is the most efficient
-* TauAxis::Decade is the standard
+* TauAxis::Decade is the standard and is efficient
 * TauAxis::All requires more computation but is accurate
 
 ```rust
   let taus = tau::generator(tau::TauAxis::Decade, 10000); //log10
 ```
 
-<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+<img src="tests/adev-white-fm.png" alt="alt text" width="500"/>
 
 use TauAxis::All to compute for every possible tau value.
 

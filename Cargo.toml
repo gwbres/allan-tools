@@ -3,19 +3,19 @@ name = "allan-tools"
 version = "0.0.3"
 license-file = "LICENSE"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
-categories = ["science","parsing"]
+categories = ["science","math","statistics","analysis"]
 homepage = "https://github.com/gwbres/allan-tools"
 keywords = ["allan", "deviation", "stability", "time", "frequency"]
-description = "Package to compute Allan & related statistics"
+description = "Package to compute statistics to study systems stability"
 edition = "2018"
 readme = "README.md"
 
 [dependencies]
+rand = "0.8.4"
 thiserror = "1"
 statistical = "1.0.0"
-rand = "0.8.4"
 rand_distr = "0.4.2"
 
 [dev-dependencies]
 probability = "0.15.8"
-plotters = "0.3.1"
+gnuplot = "0.0.37"

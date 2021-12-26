@@ -152,6 +152,7 @@ fn calc_tdev (data: &Vec<f64>, tau: f64) -> Result<(f64,f64), Error> {
 }
 
 #[cfg(test)]
+pub mod plotutils;
 mod tests {
     use super::*;
     //use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};

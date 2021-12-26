@@ -101,7 +101,6 @@ pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> V
     for i in 0..S {
         let s = data.len() / S;
         let p = &data[i*s..(i+1)*s];
-        println!("slicing size {}", p.len());
         let m = statistical::mean(&p);
         let d = 0.0_f64;
         let mut num = 0.0_f64;
@@ -224,11 +223,13 @@ mod tests {
   2.98414976e-01 ,-1.48909782e+00 ,-1.39607468e-01 , 8.22942071e-01,
   8.43177791e-01 , 5.31933871e-02 , 2.91092717e-01 , 1.35944283e-01,
   2.66120336e-01 , 1.32896610e+00 , 5.51378198e-01 ,-1.88890741e-01];
+        for nb_exp in vec![1, 2, 4] {
+            let exp = nist_power_law_identifier(&data, Some(data.len() / nb_exp as usize));
+            for e in exp {
+                assert_eq!(e, 0)
+            }
+        }
         
-		println!("POWER LAW WHITE {:#?}", nist_power_law_identifier(&data, Some(256)));
-        println!("POWER LAW WHITE {:#?}", nist_power_law_identifier(&data, Some(128)));
-        println!("POWER LAW WHITE {:#?}", nist_power_law_identifier(&data, Some(64)));
-
         let data : Vec<f64> = vec!
 [ -7.66907221 , -4.13157021 , -4.42014171 , -3.98676303 , -5.65894193,  
   -7.30877706 , -6.96322893 , -4.87095624 , -6.58496316 , -6.47917415,
@@ -282,9 +283,12 @@ mod tests {
   -6.74944052 , -5.91822956 , -4.06507675 , -5.67555957 , -5.02364584,
   -0.95419866 , -6.7999319  , -5.36216373 , -4.74022267 , -4.14945157, 
   -6.55556785];
-		println!("POWER LAW PINK {:#?}", nist_power_law_identifier(&data, Some(256)));
-        println!("POWER LAW PINK {:#?}", nist_power_law_identifier(&data, Some(128)));
-        println!("POWER LAW PINK {:#?}", nist_power_law_identifier(&data, Some(64)));
+        for nb_exp in vec![1, 2, 4] {
+            let exp = nist_power_law_identifier(&data, Some(data.len() / nb_exp as usize));
+            for e in exp {
+                assert_eq!(e, -1)
+            }
+        }
 
     }
 }

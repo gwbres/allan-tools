@@ -10,14 +10,12 @@
 
 Allantools (python lib) portage to Rust
 
-This library allows easy computation of 
-Allan & related statistics.   
-These statistics are mostly used in system stability
-studies.
+This library allows easy computations of Allan deviation & similar statistics.   
+These statistical methods are mostly used in system stability studies.
 
 ### Variances / Deviations
 
-Compute Allan Deviation over a raw data serie
+Compute Allan Deviation over raw data:
 
 ```rust
   use allantools::*;
@@ -41,7 +39,7 @@ Compute Allan Deviation over a serie of fractionnal error
 
 ```rust
   let taus = tau::generator(tau::TauAxis::Octave, 10000);
-  let ( adev, errs) = deviation(&data, taus, Deviation::Allan, true, false);
+  let ( adev, errs) = deviation(&data, taus, Deviation::Allan, true, false).unwrap();
   let (oadev, errs) = deviation(&data, taus, Deviation::Allan, true, true).unwrap();
 ```
 
@@ -93,13 +91,13 @@ A Tau axis generator is embedded, for ease of use. Several axis are built in:
 
 <img src="tests/adev-white-fm.png" alt="alt text" width="500"/>
 
-use TauAxis::All to compute for every possible tau value.
+use TauAxis::All to compute the deviation for every single tau value.
 
 ```rust
   let taus = tau::generator(tau::TauAxis::All, 10000);
 ```
 
-<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+<img src="tests/adev-pink-pm.png" alt="alt text" width="500"/>
 
 
 ### Data & Noise generators

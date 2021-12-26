@@ -19,4 +19,6 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        apt-get install gnuplot
+        cargo test -- --nocapture

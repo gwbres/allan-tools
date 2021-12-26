@@ -91,13 +91,13 @@ pub fn phase_to_radians (phase: Vec<f64>, f_0: f64) -> Vec<f64> {
 ///       If none is passed: min_dist = 10    
 /// returns: Vec<f64> of identified exponents, fractionnal
 ///          power laws are not supported @ the moment
-pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> Vec<f64> {
+pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> Vec<i32> {
     let min_dist: usize = match min_dist {
         Some(d) => d,
         _ => 10
     };
     let S = data.len() / min_dist;
-    let mut ret: Vec<f64> = Vec::with_capacity(S);
+    let mut ret: Vec<i32> = Vec::with_capacity(S);
     for i in 0..S {
         let s = data.len() / S;
         let p = &data[i*s..(i+1)*s];
@@ -111,14 +111,7 @@ pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> V
             den += (p[j] - m).powf(2.0_f64);
         }
         let r = num / den;
-        //let exp: f64 = match r {
-        //    -1.0_f64 => {
-        //        0.0_f64 // NaN
-        //    },
-        //    e => e.floor()
-        //};
-        //let exp = -2.0*delta;
-        ret.push(-2.0*(r/(r+1.0)).round())
+        ret.push((-2.0*(r/(r+1.0))).round() as i32)
     }
     ret
 }

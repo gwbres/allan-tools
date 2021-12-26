@@ -10,9 +10,9 @@
 //! url: <https://github.com/gwbres/allan-tools>  
 //! url: <https://github.com/aewallin/allantools>
 
-mod tau;
-mod noise;
-mod utils;
+pub mod tau;
+pub mod noise;
+pub mod utils;
 
 use thiserror::Error;
 
@@ -51,7 +51,6 @@ pub fn deviation (data: Vec<f64>, taus: &Vec<f64>, deviation: Deviation, is_frac
         true => utils::fractionnal_integral(data, 1.0_f64),
     };
 
-    let mut i: u32 = 0;
     let mut devs: Vec<f64> = Vec::new();
     let mut errs: Vec<f64> = Vec::new();
 
@@ -155,12 +154,10 @@ fn calc_tdev (data: &Vec<f64>, tau: f64) -> Result<(f64,f64), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};
+    //use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};
 
-    #[test]
     fn test_adev() {
         let mut data = utils::random(100000); 
-        println!("DATA \n {:#?}", data);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
         let adev_pm = deviation(data.clone(), &taus, Deviation::Allan, false, true)
             .unwrap();
@@ -169,6 +166,7 @@ mod tests {
             .unwrap();
         
         let x: Vec<u32> = (0..1024).collect(); 
+/*        
         let mut fg = Figure::new();
         
         fg.set_title("ADEV (phase/freq)");
@@ -190,8 +188,7 @@ mod tests {
                 PointSize(10.0),
                 PointSymbol('x'),
             ]);
-        
-        fg.show();
+*/
     }
 /*    
     #[test]

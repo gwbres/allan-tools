@@ -26,7 +26,7 @@ pub fn diff (data: Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
 /// Generate `size` random symbols  0 < x <= 1.0f
 pub fn random (size: usize) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(size);
-    for i in 0..size {
+    for _ in 0..size {
         ret.push(rand::thread_rng().sample(StandardNormal))
     }
     ret
@@ -96,13 +96,12 @@ pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> V
         Some(d) => d,
         _ => 10
     };
-    let S = data.len() / min_dist;
-    let mut ret: Vec<i32> = Vec::with_capacity(S);
-    for i in 0..S {
-        let s = data.len() / S;
-        let p = &data[i*s..(i+1)*s];
+    let s = data.len() / min_dist;
+    let mut ret: Vec<i32> = Vec::with_capacity(s);
+    for i in 0..s {
+        let sp = data.len() / s;
+        let p = &data[i*sp..(i+1)*sp];
         let m = statistical::mean(&p);
-        let d = 0.0_f64;
         let mut num = 0.0_f64;
         let mut den = 0.0_f64;
         for j in 0..p.len()-1 {

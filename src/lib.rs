@@ -47,8 +47,8 @@ pub fn deviation (data: Vec<f64>, taus: &Vec<f64>, deviation: Deviation, is_frac
     tau::tau_sanity_checks(&taus)?;
     
     let data = match is_fractionnal {
-        false => data.clone(),
         true => utils::fractionnal_integral(data, 1.0_f64),
+        false => data.clone(),
     };
 
     let mut devs: Vec<f64> = Vec::new();
@@ -103,13 +103,12 @@ fn calc_adev (data: &Vec<f64>, tau: f64, overlapping: bool) -> Result<(f64,f64),
     let mut sum = 0.0_f64;
 
     while i < data.len() -2*tau_u {
-        sum += (data[i + 2*tau_u] - 2.0_f64*data[i+tau_u] + data[i]).powf(2.0_f64);
+        sum += (data[i] - 2.0_f64*data[i+tau_u] + data[i+2*tau_u]).powf(2.0_f64);
         n += 1.0_f64;
         i += stride
     }
     
-    sum /= 2.0_f64;
-    let dev = sum.powf(0.5_f64 / n) / tau;
+    let dev = (sum/2.0/n).powf(0.5_f64) / tau; // * rate
     Ok((dev, dev/n.powf(0.5_f64)))
 }
 
@@ -153,61 +152,111 @@ fn calc_tdev (data: &Vec<f64>, tau: f64) -> Result<(f64,f64), Error> {
 
 #[cfg(test)]
 pub mod plotutils;
+
 mod tests {
     use super::*;
-    //use gnuplot::{Figure, Caption, Color, PointSymbol, PointSize, AxesCommon};
-
-    fn test_adev() {
-        let mut data = utils::random(100000); 
+    #[test]
+    fn test_adev_whitepm() {
+        let wn = noise::white_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let adev_pm = deviation(data.clone(), &taus, Deviation::Allan, false, true)
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, false, false)
             .unwrap();
-        
-        let adev_fm = deviation(data.clone(), &taus, Deviation::Allan, true, true)
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "ADEV", 
+            vec!["ADEV (White PM)"], 
+            "tests/adev-white-pm.png"
+        );
+    }
+    #[test]
+    fn test_adev_whitefm() {
+        let wn = noise::white_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, true, false)
             .unwrap();
-        
-        let x: Vec<u32> = (0..1024).collect(); 
-/*        
-        let mut fg = Figure::new();
-        
-        fg.set_title("ADEV (phase/freq)");
-
-        fg.axes2d()
-            .set_x_grid(true)
-            .set_x_log(Some(10.0_f64))
-            .set_y_grid(true)
-            .set_y_log(Some(10.0_f64))
-            .lines(&taus, &adev_pm.0, &[
-                Caption("ADEV (PM)"), 
-                Color("blue"), 
-                PointSize(10.0),
-                PointSymbol('x'),
-            ])
-            .lines(&taus, &adev_fm.0, &[
-                Caption("ADEV (FM)"), 
-                Color("red"), 
-                PointSize(10.0),
-                PointSymbol('x'),
-            ]);
-*/
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "ADEV", 
+            vec!["ADEV (White FM)"], 
+            "tests/adev-white-fm.png"
+        );
     }
-/*    
     #[test]
-    fn test_mdev() {
-        let mut data = utils::random(1024); 
-        println!("DATA \n {:#?}", data);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let dev = deviation(data, taus, Deviation::ModifiedAdev, false, false);
-        println!("MDEV \n {:#?}", dev)
+    fn test_adev_pinkpm() {
+        let wn = noise::pink_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, false, false)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "ADEV", 
+            vec!["ADEV (Pink PM)"], 
+            "tests/adev-pink-pm.png"
+        );
     }
-    
     #[test]
-    fn test_tdev() {
-        let mut data = utils::random(1024); 
-        println!("DATA \n {:#?}", data);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let dev = deviation(data, taus, Deviation::TimeDeviation, false, false);
-        println!("TDEV \n {:#?}", dev)
+    fn test_adev_pinkfm() {
+        let wn = noise::pink_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, true, false)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "ADEV", 
+            vec!["ADEV (Pink FM)"], 
+            "tests/adev-pink-fm.png"
+        );
     }
-*/
+    #[test]
+    fn test_oadev_whitepm() {
+        let wn = noise::white_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, false, true)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "oADEV", 
+            vec!["oADEV (White PM)"], 
+            "tests/oadev-white-pm.png"
+        );
+    }
+    #[test]
+    fn test_oadev_whitefm() {
+        let wn = noise::white_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, true, true)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "oADEV", 
+            vec!["oADEV (White FM)"], 
+            "tests/oadev-white-fm.png"
+        );
+    }
+    #[test]
+    fn test_oadev_pinkpm() {
+        let wn = noise::pink_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, false, true)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "oADEV", 
+            vec!["oADEV (Pink PM)"], 
+            "tests/oadev-pink-pm.png"
+        );
+    }
+    #[test]
+    fn test_oadev_pinkfm() {
+        let wn = noise::pink_noise(-10.0, 1.0, 10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
+        let adev = deviation(wn.clone(), &taus, Deviation::Allan, true, true)
+            .unwrap();
+        plotutils::plot2d(
+            vec![(&taus, &adev.0)], 
+            "oADEV", 
+            vec!["oADEV (Pink FM)"], 
+            "tests/oadev-pink-fm.png"
+        );
+    }
 }

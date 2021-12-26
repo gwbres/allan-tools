@@ -21,24 +21,86 @@ Compute Allan Deviation over a raw data serie
 
 ```rust
   use allantools::*;
-  let taus = tau::generator(tau::TauAxis::Decade, 10000);
-  let (adev, errs) = deviation(&data, taus, Deviation::Allan, false, false);
+  let taus = tau::generator(tau::TauAxis::Octave, 128);
+  let (dev, errs) = deviation(&data, taus, Deviation::Allan, false, false).unwrap();
 ```
+
+<img src="tests/adev-white-pm.png" alt="alt text" width="500"/>
+
 
 Improve statiscal confidence by using _overlapped_ formulas 
 
 ```rust
-  let taus = tau::generator(tau::TauAxis::Decade, 10000);
-  let (adev, errs) = deviation(&data, taus, Deviation::Allan, false, true);
+  let taus = tau::generator(tau::TauAxis::Octave, 128);
+  let (dev, errs) = deviation(&data, taus, Deviation::Allan, false, true).unwrap();
 ```
+
+<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
 
 Compute Allan Deviation over a serie of fractionnal error
 
 ```rust
-  let taus = tau::generator(tau::TauAxis::Decade, 10000);
+  let taus = tau::generator(tau::TauAxis::Octave, 10000);
   let ( adev, errs) = deviation(&data, taus, Deviation::Allan, true, false);
-  let (oadev, errs) = deviation(&data, taus, Deviation::Allan, true, true);
+  let (oadev, errs) = deviation(&data, taus, Deviation::Allan, true, true).unwrap();
 ```
+
+### Tau offset and errors management
+ 
+This library computes the requested deviation for all requested &#964; values, as long as it's feasible.   
+If  &#964;(n) is not feasible (would require more input data), computations stops
+and the previous valid deviations are returned (previous offsets). 
+
+If not a single &#964; value is feasible, the lib returns Error::NotEnoughSamplesError
+
+```rust
+   let data = [0,1,2];
+   assert_eq!(deviation(&data, taus, Deviation::Allan, true, false).is_err(), true);
+```
+
+If the user is passing a non valid  &#964; axis, the lib returns an error raised
+by basic sanity checks
+
+```rust
+   let my_x = [-1,1,2];
+   assert_eq!(deviation(&data, my_x, Deviation::Allan, true, false).is_err(), true);
+```
+ &#964; < 0 does not make sense
+
+```rust
+   let my_x = [0,1,2];
+   assert_eq!(deviation(&data, my_x, Deviation::Allan, true, false).is_err(), true);
+```
+ neither does &#964; = 0 
+ 
+ ```rust
+   let my_x = [0,1,1,2];
+   assert_eq!(deviation(&data, my_x, Deviation::Allan, true, false).is_err(), true);
+```
+the lib does not check for repeated &#964; offsets at the moment
+
+### Tau axis generation
+
+A Tau axis generator is embedded, for ease of use. Several axis are built in:
+
+* TauAxis::Octave is the most efficient
+* TauAxis::Decade is the standard
+* TauAxis::All requires more computation but is accurate
+
+```rust
+  let taus = tau::generator(tau::TauAxis::Decade, 10000); //log10
+```
+
+<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+
+use TauAxis::All to compute for every possible tau value.
+
+```rust
+  let taus = tau::generator(tau::TauAxis::All, 10000);
+```
+
+<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+
 
 ### Data & Noise generators
 

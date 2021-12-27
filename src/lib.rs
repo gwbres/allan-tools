@@ -195,11 +195,10 @@ fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), 
         n += 1.0_f64;
         i += 1 
     }
-    let mut dev = sum /2.0 /n;
+    let mut dev = sum /2.0 /n /tau /tau; // * rate
     if !is_var {
-        dev = dev.powf(0.5_f64)
+        dev = dev.powf(0.5_f64) / tau
     }
-    dev /= tau; // * rate
 
     Ok((dev, dev/(n.powf(0.5_f64))))
 }
@@ -207,9 +206,11 @@ fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), 
 /// Computes `time` deviation / variance
 /// at desired `tau` offset (s)
 fn calc_time (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), Error> {
-    let (mdev,err) = calc_modified(data, tau, is_var)?;
-    //Ok((mdev * tau / 3.0), err)
-    Ok((mdev * tau / (3.0_f64).powf(0.5_f64), err))
+    let (mdev,mderr) = calc_modified(data, tau, is_var)?;
+    Ok((
+        mdev * tau / (3.0_f64).powf(0.5_f64),
+        mderr // mderr / ns.powf(0.5_f64)
+    ))
 }
 
 /// Computes desired statistics in `Three Cornerned Hat` fashion.   

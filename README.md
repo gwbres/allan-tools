@@ -122,11 +122,11 @@ or a -5dB/dec shape if we're considering fractionnal data
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/pink-noise.png" alt="alt text" width="200"/>
 
-|  Noise |          White PM          |          Flicker PM         |   White FM   |  Flicker FM |
-|:------:|:--------------------------:|:---------------------------:|:------------:|:-----------:|
-|  adev  |            -3/2            |              -1             |     -1/2     |      0      |
-|  mdev  |             -1             |              -1             |     -1/2     |      0      |
-| method | utils::cumsum(noise::pink) | utils::cumsum(noise::white) | noise::white | noise::pink |
+|  Noise |          White PM         |        Flicker PM        |   White FM   |  Flicker FM |
+|:------:|:-------------------------:|:------------------------:|:------------:|:-----------:|
+|  adev  |            -3/2           |            -1            |     -1/2     |      0      |
+|  mdev  |             -1            |            -1            |     -1/2     |      0      |
+| method | utils::diff(noise::white) | utils::diff(noise::pink) | noise::white | noise::pink |
 
 ### Power Law Identifier
 

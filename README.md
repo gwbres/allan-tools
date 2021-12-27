@@ -19,7 +19,7 @@ Compute Allan deviation over raw data:
 ```rust
   use allantools::*;
   let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (dev, errs) = deviation(&data, taus, Calculation::Allan, false, false).unwrap();
+  let (dev, errs) = deviation(&data, &taus, Calculation::Allan, false, false).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-pm.png" alt="alt text" width="500"/>
@@ -29,7 +29,7 @@ Compute variance
 ```rust
   use allantools::*;
   let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (var, errs) = variance(&data, taus, Calculation::Allan, false, false).unwrap();
+  let (var, errs) = variance(&data, &taus, Calculation::Allan, false, false).unwrap();
 ```
 
 ### Overlapping
@@ -37,8 +37,10 @@ Compute variance
 Improve statiscal confidence by using _overlapped_ formulae 
 
 ```rust
+  let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (var, errs) = deviation(&data, taus, Calculation::Allan, false, false).unwrap();
+  let overlapping = true;
+  let (var, errs) = deviation(&data, &taus, Calculation::Allan, false, overlapping).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
@@ -48,9 +50,11 @@ Improve statiscal confidence by using _overlapped_ formulae
 (n.a) data:
 
 ```rust
+  let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 10000);
-  let ( adev, errs) = deviation(&data, taus, Calculation::Allan, true, false).unwrap();
-  let (oadev, errs) = deviation(&data, taus, Calculation::Allan, true, true).unwrap();
+  let is_fractionnal = true;
+  let ( adev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractionnal, false).unwrap();
+  let (oadev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractionnal, true).unwrap();
 ```
 
 ### Tau axis generator
@@ -99,23 +103,23 @@ The user must pass a valid &#964; serie, otherwise:
 
 Some data generators were integrated or develpped for testing purposes:
 
-* White noise generator produces a scaled normal distribution
+* White noise generator
 
 ```rust
   let x = allantools::noise::white_noise(
-    -140, // dBc/Hz
-    10E6, // (Hz)
+    -140.0_f64, // dBc/Hz
+    1.0_f64, // (Hz)
     10000); // 10k samples
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/white-noise.png" alt="alt text" width="200"/>
 
-* Pink noise generator produces a -10dB/dec shape when raw data is considered,
-or a -5dB/dec shape if we're considering fractionnal data
+* Pink noise generator
 
 ```rust
   let x = allantools::noise::pink_noise(
-    -30, // dBc @ 1Hz
+    -140.0_f64, // dBc @ 1Hz
+    1.0_f64, // (Hz)
     1024); // 1k samples
 ```
 
@@ -159,7 +163,7 @@ a/b/c from a against b, b against c and c against a measurements.
          &taus, 1.0, false, true, Calculation::Allan).unwrap();
 ```
 
-<img src="https://github.com/gwbres/allan-tools/blob/main/tests/3corner.png" alt="alt text" width="200"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/3corner.png" alt="alt text" width="450"/>
 
 ### Tools & utilities
 

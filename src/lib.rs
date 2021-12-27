@@ -153,7 +153,7 @@ fn calc_allan (data: &Vec<f64>, tau: f64, is_var: bool, overlapping: bool) -> Re
         i += stride
     }
     
-    let mut dev = (sum/2.0/n);
+    let mut dev = sum /2.0 /n;
     if !is_var {
         dev = dev.powf(0.5_f64)
     }
@@ -188,7 +188,7 @@ fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), 
         n += 1.0_f64;
         i += 1 
     }
-    let mut dev = (sum/2.0/n);
+    let mut dev = sum /2.0 /n;
     if !is_var {
         dev = dev.powf(0.5_f64)
     }

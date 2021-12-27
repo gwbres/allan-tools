@@ -85,39 +85,28 @@ pub fn phase_to_radians (phase: Vec<f64>, f_0: f64) -> Vec<f64> {
 }
 
 /// Identifies power law contained in given serie.   
-/// data: input data serie    
-/// min_dist: minimal distance between two samples in the serie,   
-///       before considering identification.
-///       If none is passed: min_dist = 10    
-/// returns: Vec<f64> of identified exponents, fractionnal
-///          power laws are not supported @ the moment
-pub fn nist_power_law_identifier (data: &Vec<f64>, min_dist: Option<usize>) -> Vec<i32> {
-    let min_dist: usize = match min_dist {
-        Some(d) => d,
-        _ => 10
-    };
-    let s = data.len() / min_dist;
-    let mut ret: Vec<i32> = Vec::with_capacity(s);
-    for i in 0..s {
-        let sp = data.len() / s;
-        let p = &data[i*sp..(i+1)*sp];
-        let m = statistical::mean(&p);
-        let mut num = 0.0_f64;
-        let mut den = 0.0_f64;
-        for j in 0..p.len()-1 {
-            num += (p[j] - m) * (p[j+1] - m);
-            den += (p[j] - m).powf(2.0_f64);
-        }
-        let r = num / den;
-        ret.push((-2.0*(r/(r+1.0))).round() as i32)
+/// data: input data serie   
+/// returns: mu/2, mu defined as -alpha-1, where
+/// is the PSD slope
+pub fn nist_power_law_identifier (data: &Vec<f64>) -> i32 {
+    let n = data.len();
+    let mut num = 0.0_f64;
+    let mut den = 0.0_f64;
+    let m = statistical::mean(&data);
+    for i in 0..n-1 {
+        num += (data[i] - m) * (data[i+1] - m);
+        den += (data[i] - m).powf(2.0_f64);
     }
-    ret
+    let r1 = num / den;
+    let alpha = (-2.0*(r1/(r1+1.0))).round() as i32;
+    (-alpha -1)/2
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::noise::*;
+    use crate::plotutils::*;
 
     #[test]
     fn test_cumsum() {
@@ -155,7 +144,7 @@ mod tests {
     }
 
     #[test]
-    fn test_power_law_identifier_against_white_noise() {
+    fn test_powerlaw_white_noise() {
         let data : Vec<f64> = vec!
 [ 2.07764065e-01 , 3.68862105e-01 ,-3.76029189e-01 ,-2.67755620e-01, 
   6.88324037e-02 , 4.92092027e-01 ,-3.63910303e-01 , 3.74569714e-02,
@@ -221,15 +210,10 @@ mod tests {
   2.98414976e-01 ,-1.48909782e+00 ,-1.39607468e-01 , 8.22942071e-01,
   8.43177791e-01 , 5.31933871e-02 , 2.91092717e-01 , 1.35944283e-01,
   2.66120336e-01 , 1.32896610e+00 , 5.51378198e-01 ,-1.88890741e-01];
-        for nb_exp in vec![1, 2, 4] {
-            let exp = nist_power_law_identifier(&data, Some(data.len() / nb_exp as usize));
-            for e in exp {
-                assert_eq!(e, 0)
-            }
-        }
+        assert_eq!(nist_power_law_identifier(&data), -1/2)
     }      
     #[test]
-    fn test_power_law_identifier_against_pink_noise() {
+    fn test_powerlaw_pink_noise() {
         let data : Vec<f64> = vec!
 [ -7.66907221 , -4.13157021 , -4.42014171 , -3.98676303 , -5.65894193,  
   -7.30877706 , -6.96322893 , -4.87095624 , -6.58496316 , -6.47917415,
@@ -283,11 +267,20 @@ mod tests {
   -6.74944052 , -5.91822956 , -4.06507675 , -5.67555957 , -5.02364584,
   -0.95419866 , -6.7999319  , -5.36216373 , -4.74022267 , -4.14945157, 
   -6.55556785];
-        for nb_exp in vec![1, 2, 4] {
-            let exp = nist_power_law_identifier(&data, Some(data.len() / nb_exp as usize));
-            for e in exp {
-                assert_eq!(e, -1)
-            }
-        }
+        assert_eq!(nist_power_law_identifier(&data), 0)
+    }
+    
+    #[test]
+    fn test_powerlaw_whitepm() {
+        let samples = diff(white_noise(-10.0, 1.0, 1000), None);
+        assert_eq!(nist_power_law_identifier(&samples),-3/2);
+        plot1d(samples, "", "PM white", "tests/white-phasenoise.png");
+    }
+    
+    #[test]
+    fn test_powerlaw_whitefm() {
+        let samples = diff(pink_noise(-10.0, 1.0, 1000), None);
+        assert_eq!(nist_power_law_identifier(&samples), -1);
+        plot1d(samples, "", "PM flicker", "tests/flicker-phasenoise.png");
     }
 }

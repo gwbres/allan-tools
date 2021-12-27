@@ -144,18 +144,22 @@ TODO
 
 ### Three Cornered Hat
 
-Three cornenered hat fashion statistics, to estimate
+Three cornered hat fashion statistics, to estimate
 a/b/c from a against b, b against c and c against a measurements.
 
 ```rust
    let a_against_b = some_measurements("a", "b");
    let b_against_c = some_measurements("b", "c");
    let c_against_a = some_measurements("c", "a");
-   let ((dev_a,err_a),(dev_b,err_b),(dev_c,err_c)) = 
-       allantools::three_cornered_hat (
-          a_against_b, b_against_c, c_against_a)
-             .unwrap();
+   
+   let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);
+
+   let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
+      three_cornered_hat(&a_against_b, &b_against_c, &c_against_a,
+         &taus, 1.0, false, true, Calculation::Allan).unwrap();
 ```
+
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/3corner.png" alt="alt text" width="200"/>
 
 ### Tools & utilities
 

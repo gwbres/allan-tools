@@ -27,7 +27,7 @@ pub enum Error {
 
 #[derive(Clone, Copy)]
 /// describes all known computations
-pub enum Calculation {
+pub enum Deviation {
     Allan,    // `allan` deviation/variance
     Modified, // `modified allan` deviation/variance
     Time,     // `time` deviation/variance
@@ -38,16 +38,16 @@ pub enum Calculation {
 /// data: input vector   
 /// taus: desired `tau` offsets (s)   
 /// sampling_rate: acquisition rate (Hz)   
-/// is_fractionnal: true if input vector is made of fractionnal (n.a) data
+/// is_fractional: true if input vector is made of fractional (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (dev, err) : deviation & statistical error bars for each
 /// feasible `tau`
-pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
+pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
-    let data = match is_fractionnal {
-        true => utils::fractionnal_integral(data, 1.0_f64),
+    let data = match is_fractional {
+        true => utils::fractional_integral(data, 1.0_f64),
         false => data.clone(),
     };
 
@@ -56,7 +56,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fracti
 
     for i in 0..taus.len() {
         match calc {
-            Calculation::Allan => {
+            Deviation::Allan => {
                 if let Ok((dev,err)) = calc_allan(&data, taus[i], false, overlapping) {
                     devs.push(dev);
                     errs.push(err)
@@ -64,7 +64,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fracti
                     break
                 }
             },
-            Calculation::Modified => {
+            Deviation::Modified => {
                 if let Ok((dev,err)) = calc_modified(&data, taus[i], false) {
                     devs.push(dev);
                     errs.push(err)
@@ -72,7 +72,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fracti
                     break
                 }
             },
-            Calculation::Time => {
+            Deviation::Time => {
                 if let Ok((dev,err)) = calc_time(&data, taus[i], false) {
                     devs.push(dev);
                     errs.push(err)
@@ -90,51 +90,18 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fracti
 /// data: input vector   
 /// taus: desired `tau` offsets (s)   
 /// sampling_rate: acquisition rate (Hz)   
-/// is_fractionnal: true if input vector is made of fractionnal (n.a) data
+/// is_fractional: true if input vector is made of fractional (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (var, err) : variance & statistical error bars for each
 /// feasible `tau`
-pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
+pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
-    tau::tau_sanity_checks(&taus)?;
-    let data = match is_fractionnal {
-        true => utils::fractionnal_integral(data, 1.0_f64),
-        false => data.clone(),
-    };
-
-    let mut devs: Vec<f64> = Vec::new();
-    let mut errs: Vec<f64> = Vec::new();
-
-    for i in 0..taus.len() {
-        match calc {
-            Calculation::Allan => {
-                if let Ok((dev,err)) = calc_allan(&data, taus[i], true, overlapping) {
-                    devs.push(dev);
-                    errs.push(err)
-                } else {
-                    break
-                }
-            },
-            Calculation::Modified => {
-                if let Ok((dev,err)) = calc_modified(&data, taus[i], true) {
-                    devs.push(dev);
-                    errs.push(err)
-                } else {
-                    break
-                }
-            },
-            Calculation::Time => {
-                if let Ok((dev,err)) = calc_time(&data, taus[i], true) {
-                    devs.push(dev);
-                    errs.push(err)
-                } else {
-                    break
-                }
-            },
-        }
+    let (mut var, err) = deviation(&data, &taus, dev, is_fractional, overlapping)?;
+    for i in 0..var.len() {
+        var[i] *= var[i]
     }
-    Ok((devs, errs))
+    Ok((var, err))
 }
 /// Computes Allan deviation/variance 
 /// @ given tau on input data.   
@@ -219,20 +186,20 @@ fn calc_time (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), Erro
 /// data_ca: C against A data   
 /// taus: desired tau offsets
 /// sample_rate: sampling rate (Hz)   
-/// is_fractionnal: true if measured data are fractionnal errors   
+/// is_fractional: true if measured data are fractional errors   
 /// overlapping: true if computing in overlapped fashion    
 /// deviation: which deviation to compute    
 /// returns  ((dev_a,err_a),(dev_b,err_b),(dev_c,err_c))   
 /// where dev_a: deviation clock(a) and related error bar for all feasible tau offsets,
 ///       same thing for clock(b) and (c) 
-fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<f64>,
-        taus: &Vec<f64>, sample_rate: f64, is_fractionnal: bool, 
-            overlapping: bool, calc: Calculation) 
+pub fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<f64>,
+        taus: &Vec<f64>, sample_rate: f64, is_fractional: bool, 
+            overlapping: bool, calc: Deviation) 
                 -> Result<((Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>)), Error>
 {
-    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, is_fractionnal, overlapping)?;
-    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, is_fractionnal, overlapping)?;
-    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, is_fractionnal, overlapping)?;
+    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, is_fractional, overlapping)?;
+    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, is_fractional, overlapping)?;
+    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, is_fractional, overlapping)?;
     let (mut a, mut b, mut c): (Vec<f64>,Vec<f64>,Vec<f64>) = 
         (Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()));
     for i in 0..var_ab.len() {
@@ -253,7 +220,6 @@ pub struct RealTime {
 }
 
 impl RealTime {
-
     /// Builds a new `real time` core
     pub fn new (tau_0: u64) -> RealTime {
         RealTime {
@@ -319,10 +285,10 @@ mod tests {
             tau::TauAxis::Decade,
             tau::TauAxis::All,
         ];
-        let calcs: Vec<Calculation> = vec![
-            Calculation::Allan,
-            Calculation::Modified,
-            Calculation::Time,
+        let calcs: Vec<Deviation> = vec![
+            Deviation::Allan,
+            Deviation::Modified,
+            Deviation::Time,
         ];
         // test against pure noise
         for noise in noises {
@@ -352,9 +318,9 @@ mod tests {
                             fp.push_str("o")
                         }
                         match calc {
-                            Calculation::Allan => fp.push_str("adev"),
-                            Calculation::Modified => fp.push_str("mdev"),
-                            Calculation::Time => fp.push_str("tdev"),
+                            Deviation::Allan => fp.push_str("adev"),
+                            Deviation::Modified => fp.push_str("mdev"),
+                            Deviation::Time => fp.push_str("tdev"),
                         }
                         fp.push_str(".png");
                         plotutils::plot1d_err(
@@ -377,11 +343,11 @@ mod tests {
 
         let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
             three_cornered_hat(&pm_pink, &fm_white, &fm_pink,
-                &taus, 1.0, false, true, Calculation::Allan).unwrap();
+                &taus, 1.0, false, true, Deviation::Allan).unwrap();
 
-        let (adev_ab, err_ab) = deviation(&pm_pink , &taus, Calculation::Allan, false, true).unwrap();
-        let (adev_bc, err_bc) = deviation(&fm_white, &taus, Calculation::Allan, false, true).unwrap();
-        let (adev_ca, err_ca) = deviation(&fm_pink , &taus, Calculation::Allan, false, true).unwrap();
+        let (adev_ab, err_ab) = deviation(&pm_pink , &taus, Deviation::Allan, false, true).unwrap();
+        let (adev_bc, err_bc) = deviation(&fm_white, &taus, Deviation::Allan, false, true).unwrap();
+        let (adev_ca, err_ca) = deviation(&fm_pink , &taus, Deviation::Allan, false, true).unwrap();
 
         plotutils::plot3corner(
             &taus,

@@ -40,13 +40,13 @@ mod tests {
     #[test]
     fn test_white_noise_generator() {
         let samples = white_noise(-10.0, 1.0, 1000);
-        assert_eq!(utils::nist_power_law_identifier(&samples), -1/2);
+        assert_eq!(utils::nist_lag1d_autocorr(&samples), -1/2);
         plotutils::plot1d(samples, "", "White noise", "tests/white-noise.png");
     }
     #[test]
     fn test_pink_noise_generator() {
         let samples = pink_noise(-10.0, 1.0, 1000);
-        assert_eq!(utils::nist_power_law_identifier(&samples), 0);
+        assert_eq!(utils::nist_lag1d_autocorr(&samples), 0);
         plotutils::plot1d(samples, "", "Pink noise", "tests/pink-noise.png");
     }
 }

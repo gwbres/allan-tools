@@ -5,7 +5,7 @@ use rand::prelude::*;
 use rand_distr::StandardNormal;
 
 /// numpy::cumsum direct equivalent 
-pub fn cumsum (data: Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
+pub fn cumsum (data: &Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(data.len());
     ret.push(data[0]);
     for i in 1..data.len() {
@@ -48,7 +48,7 @@ pub fn to_fractionnal_frequency (frequency: Vec<f64>, f_0: f64) -> Vec<f64> {  n
 /// data: raw fractionnal data (n.a)   
 /// sample_rate: sampling rate (Hz) during fract acquisition   
 /// returns: integrated data ((s) if input is fract. frequency)  
-pub fn fractionnal_integral (data: Vec<f64>, sample_rate: f64) -> Vec<f64> {
+pub fn fractionnal_integral (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
     let dt = 1.0_f64 / sample_rate;
     //let mean = statistical::mean(&data);
     // Substract mean value before cumsum
@@ -62,7 +62,7 @@ pub fn fractionnal_integral (data: Vec<f64>, sample_rate: f64) -> Vec<f64> {
 }
 
 /// Macro to convert fractionnal frequency data (n.a) to phase time (s) 
-pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64> { fractionnal_integral(frequency, f_0) }
+pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64> { fractionnal_integral(&frequency, f_0) }
 
 /// Computes derivative,
 /// converts data to fractionnal data   
@@ -84,11 +84,11 @@ pub fn phase_to_radians (phase: Vec<f64>, f_0: f64) -> Vec<f64> {
     ret
 }
 
-/// Identifies power law contained in given serie.   
+/// Identifies power law contained in given homogeneous serie.   
 /// data: input data serie   
 /// returns: mu/2, mu defined as -alpha-1, where
-/// is the PSD slope
-pub fn nist_power_law_identifier (data: &Vec<f64>) -> i32 {
+/// alpha is the PSD slope
+pub fn nist_lag1d_autocorr (data: &Vec<f64>) -> i32 {
     let n = data.len();
     let mut num = 0.0_f64;
     let mut den = 0.0_f64;
@@ -111,14 +111,14 @@ mod tests {
     #[test]
     fn test_cumsum() {
         let input: Vec<f64> = vec![1.0_f64,1.0_f64,1.0_f64,1.0_f64];
-        let output = cumsum(input, None);
+        let output = cumsum(&input, None);
         assert_eq!(output, vec![1.0_f64,2.0_f64,3.0_f64,4.0_f64]);
     }
     
     #[test]
     fn test_fractionnal_integral() {
         let input: Vec<f64> = vec![1.0_f64,1.0_f64,1.0_f64,1.0_f64];
-        let output = fractionnal_integral(input, 1.0_f64);
+        let output = fractionnal_integral(&input, 1.0_f64);
         assert_eq!(output, vec![1.0_f64,2.0_f64,3.0_f64,4.0_f64]);
     }
     
@@ -210,7 +210,7 @@ mod tests {
   2.98414976e-01 ,-1.48909782e+00 ,-1.39607468e-01 , 8.22942071e-01,
   8.43177791e-01 , 5.31933871e-02 , 2.91092717e-01 , 1.35944283e-01,
   2.66120336e-01 , 1.32896610e+00 , 5.51378198e-01 ,-1.88890741e-01];
-        assert_eq!(nist_power_law_identifier(&data), -1/2)
+        assert_eq!(nist_lag1d_autocorr(&data), -1/2)
     }      
     #[test]
     fn test_powerlaw_pink_noise() {
@@ -267,20 +267,20 @@ mod tests {
   -6.74944052 , -5.91822956 , -4.06507675 , -5.67555957 , -5.02364584,
   -0.95419866 , -6.7999319  , -5.36216373 , -4.74022267 , -4.14945157, 
   -6.55556785];
-        assert_eq!(nist_power_law_identifier(&data), 0)
+        assert_eq!(nist_lag1d_autocorr(&data), 0)
     }
     
     #[test]
     fn test_powerlaw_whitepm() {
         let samples = diff(white_noise(-10.0, 1.0, 1000), None);
-        assert_eq!(nist_power_law_identifier(&samples),-3/2);
+        assert_eq!(nist_lag1d_autocorr(&samples),-3/2);
         plot1d(samples, "", "PM white", "tests/white-phasenoise.png");
     }
     
     #[test]
     fn test_powerlaw_whitefm() {
         let samples = diff(pink_noise(-10.0, 1.0, 1000), None);
-        assert_eq!(nist_power_law_identifier(&samples), -1);
+        assert_eq!(nist_lag1d_autocorr(&samples), -1);
         plot1d(samples, "", "PM flicker", "tests/flicker-phasenoise.png");
     }
 }

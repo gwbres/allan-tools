@@ -23,8 +23,7 @@ Compute Allan Deviation over raw data:
   let (dev, errs) = deviation(&data, taus, Deviation::Allan, false, false).unwrap();
 ```
 
-<img src="tests/adev-white-pm.png" alt="alt text" width="500"/>
-
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-pm.png" alt="alt text" width="500"/>
 
 Improve statiscal confidence by using _overlapped_ formulas 
 
@@ -33,7 +32,7 @@ Improve statiscal confidence by using _overlapped_ formulas
   let (dev, errs) = deviation(&data, taus, Deviation::Allan, false, true).unwrap();
 ```
 
-<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
 
 Compute Allan Deviation over a serie of fractionnal error
 
@@ -89,7 +88,7 @@ A Tau axis generator is embedded, for ease of use. Several axis are built in:
   let taus = tau::generator(tau::TauAxis::Decade, 10000); //log10
 ```
 
-<img src="tests/adev-white-fm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-fm.png" alt="alt text" width="500"/>
 
 use TauAxis::All to compute the deviation for every single tau value.
 
@@ -97,7 +96,7 @@ use TauAxis::All to compute the deviation for every single tau value.
   let taus = tau::generator(tau::TauAxis::All, 10000);
 ```
 
-<img src="tests/adev-pink-pm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-pink-pm.png" alt="alt text" width="500"/>
 
 
 ### Data & Noise generators
@@ -112,7 +111,7 @@ Some data generators were integrated or develpped for testing purposes:
   let x = allantools::noise::white_noise(psd, fs, 10000); // 10k samples
 ```
 
-<img src="tests/white-noise.png" alt="alt text" width="200"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/white-noise.png" alt="alt text" width="200"/>
 
 * Pink noise generator produces a -10dB/dec shape when raw data is considered,
 or a -5dB/dec shape if we're considering fractionnal data
@@ -124,7 +123,7 @@ or a -5dB/dec shape if we're considering fractionnal data
   let x = allantools::noise::pink_noise(a0_1hz, psd, fs, 1024); // 1k samples
 ```
 
-<img src="tests/pink-noise.png" alt="alt text" width="200"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/pink-noise.png" alt="alt text" width="200"/>
 
 ### Tools & utilities
 

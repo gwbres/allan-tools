@@ -41,14 +41,14 @@ pub fn normalize (data: Vec<f64>, norm: f64) -> Vec<f64> {
     data
 }
 
-/// Macro to convert frequency data (Hz) to fractionnal frequency (n.a) 
-pub fn to_fractionnal_frequency (frequency: Vec<f64>, f_0: f64) -> Vec<f64> {  normalize(frequency, f_0) }
+/// Macro to convert frequency data (Hz) to fractional frequency (n.a) 
+pub fn to_fractional_frequency (frequency: Vec<f64>, f_0: f64) -> Vec<f64> {  normalize(frequency, f_0) }
 
-/// Integrates fractionnal data (n.a).
-/// data: raw fractionnal data (n.a)   
+/// Integrates fractional data (n.a).
+/// data: raw fractional data (n.a)   
 /// sample_rate: sampling rate (Hz) during fract acquisition   
 /// returns: integrated data ((s) if input is fract. frequency)  
-pub fn fractionnal_integral (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
+pub fn fractional_integral (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
     let dt = 1.0_f64 / sample_rate;
     //let mean = statistical::mean(&data);
     // Substract mean value before cumsum
@@ -61,13 +61,13 @@ pub fn fractionnal_integral (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
     cumsum(data, Some(dt))
 }
 
-/// Macro to convert fractionnal frequency data (n.a) to phase time (s) 
-pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64> { fractionnal_integral(&frequency, f_0) }
+/// Macro to convert fractional frequency data (n.a) to phase time (s) 
+pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64> { fractional_integral(&frequency, f_0) }
 
 /// Computes derivative,
-/// converts data to fractionnal data   
+/// converts data to fractional data   
 /// data: integrated data   
-/// returns: fractionnal data
+/// returns: fractional data
 pub fn derivative (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
     diff(data, Some(sample_rate))
 }
@@ -116,9 +116,9 @@ mod tests {
     }
     
     #[test]
-    fn test_fractionnal_integral() {
+    fn test_fractional_integral() {
         let input: Vec<f64> = vec![1.0_f64,1.0_f64,1.0_f64,1.0_f64];
-        let output = fractionnal_integral(&input, 1.0_f64);
+        let output = fractional_integral(&input, 1.0_f64);
         assert_eq!(output, vec![1.0_f64,2.0_f64,3.0_f64,4.0_f64]);
     }
     

@@ -34,18 +34,18 @@ pub enum Calculation {
 }
 
 /// Computes desired deviation of given input data 
-/// for given tau values.  
+/// for desired tau values.  
 /// data: input vector   
 /// taus: desired `tau` offsets (s)   
 /// sampling_rate: acquisition rate (Hz)   
 /// is_fractionnal: true if input vector is made of fractionnal (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
-/// returns: (adev, err) : deviations & error bars for each feasible `tau`
+/// returns: (dev, err) : deviation & statistical error bars for each
+/// feasible `tau`
 pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
-    
     let data = match is_fractionnal {
         true => utils::fractionnal_integral(data, 1.0_f64),
         false => data.clone(),
@@ -85,12 +85,19 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fracti
     Ok((devs, errs))
 }
 
-/// Computes desired variance at selected `taus` offset (s). 
+/// Computes desired variance of given input data 
+/// for desired tau values.  
+/// data: input vector   
+/// taus: desired `tau` offsets (s)   
+/// sampling_rate: acquisition rate (Hz)   
+/// is_fractionnal: true if input vector is made of fractionnal (n.a) data
+/// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
+/// returns: (var, err) : variance & statistical error bars for each
+/// feasible `tau`
 pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
-    
     let data = match is_fractionnal {
         true => utils::fractionnal_integral(data, 1.0_f64),
         false => data.clone(),

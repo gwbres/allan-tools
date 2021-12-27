@@ -304,169 +304,72 @@ impl RealTime {
 pub mod plotutils;
 mod tests {
     use super::*;
-    
     #[test]
-    fn test_adev_whitepm() {
-        let wn = noise::white_noise(-10.0, 1.0, 128);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let (dev, err)= deviation(&wn, &taus, Calculation::Allan, false, false)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "ADEV", 
-            vec!["ADEV (White PM)"], 
-            "tests/adev-white-pm.png"
-        );
-    }
-    #[test]
-    fn test_adev_whitefm() {
-        let wn = noise::white_noise(-10.0, 1.0, 1000000);
-        let taus = tau::tau_generator(tau::TauAxis::Decade, 10000.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, false)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "ADEV", 
-            vec!["ADEV (White FM)"], 
-            "tests/adev-white-fm.png"
-        );
-    }
-    #[test]
-    fn test_adev_pinkpm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 1000000);
-        let taus = tau::tau_generator(tau::TauAxis::All, 100000.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, false, false)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "ADEV", 
-            vec!["ADEV (Pink PM)"], 
-            "tests/adev-pink-pm.png"
-        );
-    }
-    #[test]
-    fn test_adev_pinkfm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, false)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "ADEV", 
-            vec!["ADEV (Pink FM)"], 
-            "tests/adev-pink-fm.png"
-        );
-    }
-    #[test]
-    fn test_oadev_whitepm() {
-        let wn = noise::white_noise(-10.0, 1.0, 128);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, false, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "oADEV", 
-            vec!["oADEV (White PM)"], 
-            "tests/oadev-white-pm.png"
-        );
-    }
-    #[test]
-    fn test_oadev_whitefm() {
-        let wn = noise::white_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "oADEV", 
-            vec!["oADEV (White FM)"], 
-            "tests/oadev-white-fm.png"
-        );
-    }
-/*
-    #[test]
-    fn test_oadev_pinkpm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let adev = deviation(wn.clone(), &taus, Calculation::Allan, false, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &adev.0)], 
-            "oADEV", 
-            vec!["oADEV (Pink PM)"], 
-            "tests/oadev-pink-pm.png"
-        );
-    }
-    #[test]
-    fn test_oadev_pinkfm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let adev = deviation(wn.clone(), &taus, Calculation::Allan, true, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &adev.0)], 
-            "oADEV", 
-            vec!["oADEV (Pink FM)"], 
-            "tests/oadev-pink-fm.png"
-        );
-    }
-*/
-    #[test]
-    fn test_mdev_whitepm() {
-        let wn = noise::white_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, false, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "MDEV", 
-            vec!["MDEV (White PM)"], 
-            "tests/mdev-white-pm.png"
-        );
-    }
-    #[test]
-    fn test_mdev_pinkpm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, false, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "MDEV", 
-            vec!["MDEV (Pink PM)"], 
-            "tests/mdev-pink-pm.png"
-        );
-    }
-    #[test]
-    fn test_mdev_whitefm() {
-        let wn = noise::white_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, true, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "MDEV", 
-            vec!["MDEV (White FM)"], 
-            "tests/mdev-white-fm.png"
-        );
-    }
-    #[test]
-    fn test_mdev_pinkfm() {
-        let wn = noise::pink_noise(-10.0, 1.0, 10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, true, true)
-            .unwrap();
-        plotutils::plot2d(
-            vec![(&taus, &dev, &err)], 
-            "MDEV", 
-            vec!["MDEV (Pink FM)"], 
-            "tests/mdev-pink-fm.png"
-        );
-    }
+    fn test_deviation() {
+        let N: usize = 10000;
+        let noises: Vec<&str> = vec![
+            "whitepm",
+            "flickpm",
+            "whitefm",
+            "pinkfm",
+        ];
+        let axes: Vec<tau::TauAxis> = vec![
+            tau::TauAxis::Octave,
+            tau::TauAxis::Decade,
+            tau::TauAxis::All,
+        ];
+        let calcs: Vec<Calculation> = vec![
+            Calculation::Allan,
+            Calculation::Modified,
+            Calculation::Time,
+        ];
+        // test against pure noise
+        for noise in noises {
+            let mut input: Vec<f64>;
+            if noise.eq("white") {
+                input = noise::white_noise(-10.0,1.0, N)
+            } else {
+                input = noise::pink_noise(-10.0,1.0, N)
+            };
+            let is_fract = noise.contains("fm");
 
+            for ax in &axes {
+                let taus = tau::tau_generator(*ax, 1000.0); 
+                for overlapping in vec![false, true] {
+                    for calc in &calcs {
+                        let (dev, err) = deviation(
+                            &input,
+                            &taus,
+                            *calc,
+                            is_fract,
+                            overlapping)
+                                .unwrap();
+                        let mut fp = String::from("tests/");
+                        fp.push_str(noise);
+                        fp.push_str("-");
+                        if overlapping {
+                            fp.push_str("o")
+                        }
+                        match calc {
+                            Calculation::Allan => fp.push_str("adev"),
+                            Calculation::Modified => fp.push_str("mdev"),
+                            Calculation::Time => fp.push_str("tdev"),
+                        }
+                        fp.push_str(".png");
+                        plotutils::plot1d_err(
+                            vec![(&taus, &dev, &err)],
+                                "test deviation",
+                                vec![&fp],
+                                &fp,
+                        );
+                    }
+                }
+            }
+        }
+    }
     #[test]
     fn test_three_cornered_hat() {
-        let pm_pink  = utils::diff(noise::pink_noise(-10.0,1.0,10000),None);
+        let pm_pink  = utils::diff(&noise::pink_noise(-10.0,1.0,10000),None);
         let fm_white = noise::white_noise(-10.0,1.0,10000);
         let fm_pink = noise::pink_noise(-10.0,1.0,10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);

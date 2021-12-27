@@ -20,7 +20,7 @@ pub fn plot1d (data: Vec<f64>, plot_title: &str, caption: &str, filepath: &str) 
 }
 
 /// plots given data into file
-pub fn plot2d (datasets: Vec<(&Vec<f64>,&Vec<f64>,&Vec<f64>)>,
+pub fn plot1d_err (datasets: Vec<(&Vec<f64>,&Vec<f64>,&Vec<f64>)>,
         plot_title: &str, captions: Vec<&str>, filepath: &str) 
 {
     let mut fg = Figure::new();

@@ -15,7 +15,7 @@ pub fn cumsum (data: &Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
 }
 
 /// numpy::diff direct equivalent
-pub fn diff (data: Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
+pub fn diff (data: &Vec<f64>, normalization: Option<f64>) -> Vec<f64> {
     let mut ret: Vec<f64> = Vec::with_capacity(data.len()-1);
     for i in 1..data.len() {
         ret.push((data[i] - data[i-1]) * normalization.unwrap_or(1.0_f64))
@@ -68,7 +68,7 @@ pub fn fractional_freq_to_phase_time (frequency: Vec<f64>, f_0: f64) -> Vec<f64>
 /// converts data to fractionnal data   
 /// data: integrated data   
 /// returns: fractionnal data
-pub fn derivative (data: Vec<f64>, sample_rate: f64) -> Vec<f64> {
+pub fn derivative (data: &Vec<f64>, sample_rate: f64) -> Vec<f64> {
     diff(data, Some(sample_rate))
 }
 
@@ -125,14 +125,14 @@ mod tests {
     #[test]
     fn test_diff() {
         let input: Vec<f64> = vec![1.0_f64,2.0_f64,3.0_f64,4.0_f64];
-        let output = diff(input, None);
+        let output = diff(&input, None);
         assert_eq!(output, vec![1.0_f64,1.0_f64,1.0_f64]);
     }
     
     #[test]
     fn test_derivative() {
         let input: Vec<f64> = vec![1.0_f64,2.0_f64,3.0_f64,4.0_f64];
-        let output = derivative(input, 1.0_f64);
+        let output = derivative(&input, 1.0_f64);
         assert_eq!(output, vec![1.0_f64,1.0_f64,1.0_f64]);
     }
     
@@ -272,14 +272,14 @@ mod tests {
     
     #[test]
     fn test_powerlaw_whitepm() {
-        let samples = diff(white_noise(-10.0, 1.0, 1000), None);
+        let samples = diff(&white_noise(-10.0, 1.0, 1000), None);
         assert_eq!(nist_lag1d_autocorr(&samples),-3/2);
         plot1d(samples, "", "PM white", "tests/white-phasenoise.png");
     }
     
     #[test]
     fn test_powerlaw_whitefm() {
-        let samples = diff(pink_noise(-10.0, 1.0, 1000), None);
+        let samples = diff(&pink_noise(-10.0, 1.0, 1000), None);
         assert_eq!(nist_lag1d_autocorr(&samples), -1);
         plot1d(samples, "", "PM flicker", "tests/flicker-phasenoise.png");
     }

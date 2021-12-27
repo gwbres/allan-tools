@@ -84,17 +84,16 @@ time granularity
  
 This library computes the requested statistics for all &#964; values, as long as 
 $#964;(n) can be evaluated.   
-If &#964;(n) cannot be evaluated, computation stops and returns all
+If &#964; (n) cannot be evaluated, computation stops and returns all
 previously evaluated offsets.
 
 If not a single &#964; value is feasible, the lib returns Error::NotEnoughSamplesError
 
 The user must pass a valid &#964; serie, otherwise:
 
-* TauAxis::NullTauValue: is returned when &#964 = 0 (non sense) is requested
-* TauAxis::NegativeTauValue: is return when &#964 < 0 (non physical) is requested
-* TauAxis::RepeatedTauValue: two identical offsets were passed: 
-offsets should be a increasing pattern
+* TauAxis::NullTauValue: is returned when &#964; = 0 (non sense) is requested
+* TauAxis::NegativeTauValue: is return when &#964; < 0 (non physical) is requested
+* TauAxis::InvalidTauShape: shape is not an increasing (not necessarily steady) shape
 
 ### Data & Noise generators
 
@@ -128,25 +127,20 @@ or a -5dB/dec shape if we're considering fractionnal data
 |  mdev  |             -1            |            -1            |     -1/2     |      0      |
 | method | utils::diff(noise::white) | utils::diff(noise::pink) | noise::white | noise::pink |
 
-### Power Law Identifier
+### Power Law Identification
 
+#### NIST LAG1D autocorrelation
 [NIST Power Law identification method[[46]]](https://www.nist.gov/publications/handbook-frequency-stability-analysis)   
 
-This is a useful macro to identify noise processes contained in a (raw) data serie.  
-In other words, this tells you how the data serie behaves.
-
-This implementation works on a per decade basis, it will identify alpha
-for every possible interval  10^N < &#964; <= 10^N+1
+This macro works well on homogeneous data series (single noise process),
+or series where one noise process is very dominant.
 
 ```rust
-  let x = produce_some_data(100);
-  let exponents = allantools::nist_power_law_identifier(&x);
-  assert_eq!(exponents.len(), 3);
-  
-  let x = produce_some_data(65536);
-  let exponents = allantools::nist_power_law_identifier(&x);
-  assert_eq!(exponents.len(), 4);
+  let r = allantools::nist_lag1d_autocorr(&some_data);
 ```
+
+#### Bias1 + R(n) identification method
+TODO
 
 ### Three Cornered Hat
 

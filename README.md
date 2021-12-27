@@ -127,17 +127,20 @@ or a -5dB/dec shape if we're considering fractionnal data
 |  mdev  |             -1            |            -1            |     -1/2     |      0      |
 | method | utils::diff(noise::white) | utils::diff(noise::pink) | noise::white | noise::pink |
 
-### Power Law Identifier
+### Power Law Identification
 
+#### NIST LAG1D autocorrelation
 [NIST Power Law identification method[[46]]](https://www.nist.gov/publications/handbook-frequency-stability-analysis)   
 
-This is a useful macro to identify noise processes contained in a (raw) data serie.  
-In other words, this tells you how the data serie behaves.
+This macro works well on homogeneous data series (single noise process),
+or series where one noise process is very dominant.
 
 ```rust
-  let x = produce_some_data(100);
-  let exponents = allantools::nist_power_law_identifier(&x);
+  let r = allantools::nist_lag1d_autocorr(&some_data);
 ```
+
+#### Bias1 + R(n) identification method
+TODO
 
 ### Three Cornered Hat
 

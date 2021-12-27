@@ -84,7 +84,7 @@ time granularity
  
 This library computes the requested statistics for all &#964; values, as long as 
 $#964;(n) can be evaluated.   
-If &#964;(n) cannot be evaluated, computation stops and returns all
+If &#964; (n) cannot be evaluated, computation stops and returns all
 previously evaluated offsets.
 
 If not a single &#964; value is feasible, the lib returns Error::NotEnoughSamplesError

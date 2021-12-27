@@ -22,12 +22,7 @@ Compute Allan Deviation over raw data:
   let (dev, errs) = deviation(&data, taus, Calculation::Allan, false, false).unwrap();
 ```
 
-<img src="tests/adev-white-pm.png" alt="alt text" width="500"/>
-
-Compute Allan Variance over raw data:
-```rust
-  let (var, errs) = variance(&data, taus, Calculation::Allan, false, false).unwrap();
-```
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-pm.png" alt="alt text" width="500"/>
 
 ### Overlapping
 
@@ -35,10 +30,10 @@ Improve statiscal confidence by using _overlapped_ formulae
 
 ```rust
   let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (dev, errs) = deviation(&data, taus, Calculation::Allan, false, true).unwrap();
+  let (var, errs) = deviation(&data, taus, Calculation::Allan, false, false).unwrap();
 ```
 
-<img src="tests/oadev-white-pm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
 
 ### Fractionnal data
 `is fractionnal` can be used to compute statistics over fractionnal
@@ -66,7 +61,7 @@ Several axis are known:
   let taus = tau::generator(tau::TauAxis::Decade, 10000); //log10
 ```
 
-<img src="tests/adev-white-fm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-fm.png" alt="alt text" width="500"/>
 
 Using TauAxis::All requires more computation but gives a total
 time granularity 
@@ -75,7 +70,7 @@ time granularity
   let taus = tau::generator(tau::TauAxis::All, 10000);
 ```
 
-<img src="tests/adev-pink-pm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-pink-pm.png" alt="alt text" width="500"/>
 
 ### Tau offset and error management
  
@@ -106,7 +101,7 @@ Some data generators were integrated or develpped for testing purposes:
     10000); // 10k samples
 ```
 
-<img src="tests/white-noise.png" alt="alt text" width="200"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/white-noise.png" alt="alt text" width="200"/>
 
 * Pink noise generator produces a -10dB/dec shape when raw data is considered,
 or a -5dB/dec shape if we're considering fractionnal data
@@ -117,23 +112,7 @@ or a -5dB/dec shape if we're considering fractionnal data
     1024); // 1k samples
 ```
 
-<img src="tests/pink-noise.png" alt="alt text" width="200"/>
-
-### Three Cornered Hat
-
-Three cornenered hat fashion statistics, to estimate
-a/b/c from a against b, b against c and c against a
-raw data.
-
-```rust
-   let a_against_b = some_measurements("a", "b");
-   let b_against_c = some_measurements("b", "c");
-   let c_against_a = some_measurements("c", "a");
-   let ((dev_a,err_a),(dev_b,err_b),(dev_c,err_c)) = 
-       allantools::three_cornered_hat (
-          a_against_b, b_against_c, c_against_a)
-             .unwrap();
-```
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/pink-noise.png" alt="alt text" width="200"/>
 
 ### Power Law Identifier
 
@@ -153,6 +132,21 @@ for every possible interval  10^N < &#964; <= 10^N+1
   let x = produce_some_data(65536);
   let exponents = allantools::nist_power_law_identifier(&x);
   assert_eq!(exponents.len(), 4);
+```
+
+### Three Cornered Hat
+
+Three cornenered hat fashion statistics, to estimate
+a/b/c from a against b, b against c and c against a measurements.
+
+```rust
+   let a_against_b = some_measurements("a", "b");
+   let b_against_c = some_measurements("b", "c");
+   let c_against_a = some_measurements("c", "a");
+   let ((dev_a,err_a),(dev_b,err_b),(dev_c,err_c)) = 
+       allantools::three_cornered_hat (
+          a_against_b, b_against_c, c_against_a)
+             .unwrap();
 ```
 
 ### Tools & utilities

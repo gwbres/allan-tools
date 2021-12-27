@@ -93,8 +93,7 @@ The user must pass a valid &#964; serie, otherwise:
 
 * TauAxis::NullTauValue: is returned when &#964 = 0 (non sense) is requested
 * TauAxis::NegativeTauValue: is return when &#964 < 0 (non physical) is requested
-* TauAxis::RepeatedTauValue: two identical offsets were passed: 
-offsets should be a increasing pattern
+* TauAxis::InvalidTauShape: shape is not an increasing (not necessarily steady) shape
 
 ### Data & Noise generators
 

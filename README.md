@@ -14,7 +14,7 @@ These statistical methods are mostly used in system stability studies.
 
 ### Variances / Deviations
 
-Compute Allan Deviation over raw data:
+Compute Allan deviation over raw data:
 
 ```rust
   use allantools::*;
@@ -23,6 +23,14 @@ Compute Allan Deviation over raw data:
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-pm.png" alt="alt text" width="500"/>
+
+Compute variance
+
+```rust
+  use allantools::*;
+  let taus = tau::generator(tau::TauAxis::Octave, 128);
+  let (var, errs) = variance(&data, taus, Calculation::Allan, false, false).unwrap();
+```
 
 ### Overlapping
 
@@ -113,6 +121,12 @@ or a -5dB/dec shape if we're considering fractionnal data
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/pink-noise.png" alt="alt text" width="200"/>
+
+|  Noise |          White PM          |          Flicker PM         |   White FM   |  Flicker FM |
+|:------:|:--------------------------:|:---------------------------:|:------------:|:-----------:|
+|  adev  |            -3/2            |              -1             |     -1/2     |      0      |
+|  mdev  |             -1             |              -1             |     -1/2     |      0      |
+| method | utils::cumsum(noise::pink) | utils::cumsum(noise::white) | noise::white | noise::pink |
 
 ### Power Law Identifier
 

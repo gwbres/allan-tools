@@ -134,17 +134,9 @@ or a -5dB/dec shape if we're considering fractionnal data
 This is a useful macro to identify noise processes contained in a (raw) data serie.  
 In other words, this tells you how the data serie behaves.
 
-This implementation works on a per decade basis, it will identify alpha
-for every possible interval  10^N < &#964; <= 10^N+1
-
 ```rust
   let x = produce_some_data(100);
   let exponents = allantools::nist_power_law_identifier(&x);
-  assert_eq!(exponents.len(), 3);
-  
-  let x = produce_some_data(65536);
-  let exponents = allantools::nist_power_law_identifier(&x);
-  assert_eq!(exponents.len(), 4);
 ```
 
 ### Three Cornered Hat

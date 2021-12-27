@@ -1,6 +1,6 @@
 [package]
 name = "allan-tools"
-version = "0.1.0"
+version = "0.1.1"
 license-file = "LICENSE"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 categories = ["science","math","statistics","analysis"]

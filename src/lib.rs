@@ -41,7 +41,7 @@ pub enum Calculation {
 /// is_fractionnal: true if input vector is made of fractionnal (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (adev, err) : deviations & error bars for each feasible `tau`
-pub fn deviation (data: Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
+pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
@@ -86,7 +86,7 @@ pub fn deviation (data: Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractio
 }
 
 /// Computes desired variance at selected `taus` offset (s). 
-pub fn variance (data: Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
+pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, calc: Calculation, is_fractionnal: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
@@ -217,14 +217,14 @@ fn calc_time (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), Erro
 /// returns  ((dev_a,err_a),(dev_b,err_b),(dev_c,err_c))   
 /// where dev_a: deviation clock(a) and related error bar for all feasible tau offsets,
 ///       same thing for clock(b) and (c) 
-fn three_cornered_hat(data_ab: Vec<f64>, data_bc: Vec<f64>, data_ca: Vec<f64>,
-        taus: Vec<f64>, sample_rate: f64, is_fractionnal: bool, 
+fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<f64>,
+        taus: &Vec<f64>, sample_rate: f64, is_fractionnal: bool, 
             overlapping: bool, calc: Calculation) 
                 -> Result<((Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>)), Error>
 {
-    let (var_ab, err_ab) = variance(data_ab, &taus, calc, is_fractionnal, overlapping)?;
-    let (var_bc, err_bc) = variance(data_bc, &taus, calc, is_fractionnal, overlapping)?;
-    let (var_ca, err_ca) = variance(data_ca, &taus, calc, is_fractionnal, overlapping)?;
+    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, is_fractionnal, overlapping)?;
+    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, is_fractionnal, overlapping)?;
+    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, is_fractionnal, overlapping)?;
     let (mut a, mut b, mut c): (Vec<f64>,Vec<f64>,Vec<f64>) = 
         (Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()));
     for i in 0..var_ab.len() {
@@ -295,14 +295,14 @@ impl RealTime {
 
 #[cfg(test)]
 pub mod plotutils;
-
 mod tests {
     use super::*;
+    
     #[test]
     fn test_adev_whitepm() {
         let wn = noise::white_noise(-10.0, 1.0, 128);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let (dev, err)= deviation(wn.clone(), &taus, Calculation::Allan, false, false)
+        let (dev, err)= deviation(&wn, &taus, Calculation::Allan, false, false)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -315,7 +315,7 @@ mod tests {
     fn test_adev_whitefm() {
         let wn = noise::white_noise(-10.0, 1.0, 1000000);
         let taus = tau::tau_generator(tau::TauAxis::Decade, 10000.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Allan, true, false)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, false)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -328,7 +328,7 @@ mod tests {
     fn test_adev_pinkpm() {
         let wn = noise::pink_noise(-10.0, 1.0, 1000000);
         let taus = tau::tau_generator(tau::TauAxis::All, 100000.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Allan, false, false)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, false, false)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -341,7 +341,7 @@ mod tests {
     fn test_adev_pinkfm() {
         let wn = noise::pink_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Allan, true, false)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, false)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -354,7 +354,7 @@ mod tests {
     fn test_oadev_whitepm() {
         let wn = noise::white_noise(-10.0, 1.0, 128);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 128.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Allan, false, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, false, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -367,7 +367,7 @@ mod tests {
     fn test_oadev_whitefm() {
         let wn = noise::white_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Allan, true, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Allan, true, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -408,7 +408,7 @@ mod tests {
     fn test_mdev_whitepm() {
         let wn = noise::white_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Modified, false, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, false, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -421,7 +421,7 @@ mod tests {
     fn test_mdev_pinkpm() {
         let wn = noise::pink_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Modified, false, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, false, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -434,7 +434,7 @@ mod tests {
     fn test_mdev_whitefm() {
         let wn = noise::white_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Modified, true, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, true, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
@@ -447,13 +447,39 @@ mod tests {
     fn test_mdev_pinkfm() {
         let wn = noise::pink_noise(-10.0, 1.0, 10000);
         let taus = tau::tau_generator(tau::TauAxis::Octave, 1024.0); 
-        let (dev, err) = deviation(wn.clone(), &taus, Calculation::Modified, true, true)
+        let (dev, err) = deviation(&wn, &taus, Calculation::Modified, true, true)
             .unwrap();
         plotutils::plot2d(
             vec![(&taus, &dev, &err)], 
             "MDEV", 
             vec!["MDEV (Pink FM)"], 
             "tests/mdev-pink-fm.png"
+        );
+    }
+
+    #[test]
+    fn test_three_cornered_hat() {
+        let pm_pink  = utils::diff(noise::pink_noise(-10.0,1.0,10000),None);
+        let fm_white = noise::white_noise(-10.0,1.0,10000);
+        let fm_pink = noise::pink_noise(-10.0,1.0,10000);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);
+
+        let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
+            three_cornered_hat(&pm_pink, &fm_white, &fm_pink,
+                &taus, 1.0, false, true, Calculation::Allan).unwrap();
+
+        let (adev_ab, err_ab) = deviation(&pm_pink , &taus, Calculation::Allan, false, true).unwrap();
+        let (adev_bc, err_bc) = deviation(&fm_white, &taus, Calculation::Allan, false, true).unwrap();
+        let (adev_ca, err_ca) = deviation(&fm_pink , &taus, Calculation::Allan, false, true).unwrap();
+
+        plotutils::plot3corner(
+            &taus,
+            (&adev_ab, &err_ab),
+            (&dev_a,   &err_a),
+            (&adev_bc, &err_bc),
+            (&dev_b,   &err_b),
+            (&adev_ca, &err_ca),
+            (&dev_c,   &err_c),
         );
     }
 }

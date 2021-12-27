@@ -46,15 +46,15 @@ Improve statiscal confidence by using _overlapped_ formulae
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
 
 ### Fractionnal data
-`is fractionnal` can be used to compute statistics over fractionnal
+`is fractional` can be used to compute statistics over fractional
 (n.a) data:
 
 ```rust
   let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 10000);
-  let is_fractionnal = true;
-  let ( adev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractionnal, false).unwrap();
-  let (oadev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractionnal, true).unwrap();
+  let is_fractional = true;
+  let ( adev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractional, false).unwrap();
+  let (oadev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractional, true).unwrap();
 ```
 
 ### Tau axis generator
@@ -195,18 +195,18 @@ __normalize__ : normalizes a sequence to 1/norm :
        2.0_f64 * std::f64::consts::PI); // 1/(2pi)
 ```
 
-__to\_fractionnal\_frequency__ : converts a raw data serie
-to fractionnal data.   
+__to\_fractional\_frequency__ : converts a raw data serie
+to fractional data.   
 ```rust
    let data: Vec<f64> = somedata(); // sampled @ 10kHz
-   let fract = allantools::utilities::to_fractionnal_frequency(data, 10E3); // :)
+   let fract = allantools::utilities::to_fractional_frequency(data, 10E3); // :)
 ```
 
-__fractionnal_integral__ : converts a serie of fractionnal measurements
-to integrated measurements (like fractionnal frequency (n.a) to phase time (s)).
+__fractional_integral__ : converts a serie of fractional measurements
+to integrated measurements (like fractional frequency (n.a) to phase time (s)).
 ```rust
    let data: Vec<f64> = somedata(); // (n.a) 
-   let fract = allantools::utilities::fractionnal_integral(data, 1.0); // sampled @ 1Hz :)
+   let fract = allantools::utilities::fractional_integral(data, 1.0); // sampled @ 1Hz :)
 ```
 
 __fractional\_freq\_to\_phase\_time__ : macro wrapper of previous function

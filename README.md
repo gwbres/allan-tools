@@ -32,6 +32,10 @@ Compute variance
   let (var, errs) = variance(&data, &taus, Calculation::Allan, false, false).unwrap();
 ```
 
+### Error bars
+
+Only basic (biased) error bars following the 1/√N decay are currently produced
+
 ### Overlapping
 
 Improve statiscal confidence by using _overlapped_ formulae 

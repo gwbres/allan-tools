@@ -1,6 +1,6 @@
 use gnuplot::{Figure, Caption};
 use gnuplot::{Color, PointSymbol, LineStyle, DashType};
-use gnuplot::{PointSize, AxesCommon};
+use gnuplot::{PointSize, AxesCommon, LineWidth};
 
 /// plots given data into file
 pub fn plot1d (data: Vec<f64>, plot_title: &str, caption: &str, filepath: &str) {
@@ -39,6 +39,48 @@ pub fn plot1d_err (datasets: Vec<(&Vec<f64>,&Vec<f64>,&Vec<f64>)>,
             ]);
     }
     fg.save_to_png(filepath, 640, 480).unwrap();
+}
+
+pub fn plotmodel_tb (xm_adev: &Vec<f64>, ym_adev: &Vec<f64>,
+        xm_mdev: &Vec<f64>, ym_mdev: &Vec<f64>,
+            x_adev: &Vec<f64>, y_adev: &Vec<f64>, y_mdev: &Vec<f64>
+){
+    let mut fg = Figure::new();
+    fg.set_title("allantools vs stable32");
+    fg.axes2d()
+        .set_x_grid(true)
+        .set_x_log(Some(10.0_f64))
+        .set_y_grid(true)
+        .set_y_log(Some(10.0_f64))
+        .lines(xm_adev, ym_adev,
+        &[
+            Caption("ADEV (stable32)"),
+            Color("blue"), 
+            PointSymbol('x'),
+        ])
+        .lines(x_adev, y_adev,
+        &[
+            Caption("ADEV"),
+            Color("blue"), 
+            PointSymbol('x'),
+            LineWidth(1.5),
+            LineStyle(DashType::Dash),
+        ])
+        .lines(xm_mdev, ym_mdev,
+        &[
+            Caption("MDEV (stable32)"),
+            Color("orange"), 
+            PointSymbol('x'),
+        ])
+        .lines(x_adev, y_mdev,
+        &[
+            Caption("MDEV"),
+            Color("orange"), 
+            PointSymbol('x'),
+            LineWidth(1.5),
+            LineStyle(DashType::Dash),
+        ]);
+    fg.save_to_png("tests/model.png", 640, 480).unwrap()
 }
 
 pub fn plot3corner (

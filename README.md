@@ -22,15 +22,9 @@ Compute Allan deviation over raw data:
   let (dev, errs) = deviation(&data, &taus, Calculation::Allan, false, false).unwrap();
 ```
 
-<img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-pm.png" alt="alt text" width="500"/>
+<img src="https://github.com/gwbres/allan-tools/blob/main/tests/model.png" alt="alt text" width="500"/>
 
-Compute variance
-
-```rust
-  use allantools::*;
-  let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (var, errs) = variance(&data, &taus, Calculation::Allan, false, false).unwrap();
-```
+This lib against stable32 on a well known signal.
 
 ### Overlapping
 

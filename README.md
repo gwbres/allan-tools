@@ -18,8 +18,9 @@ Compute Allan deviation over raw data:
 
 ```rust
   use allantools::*;
-  let taus = tau::generator(tau::TauAxis::Octave, 128);
-  let (dev, errs) = deviation(&data, &taus, Calculation::Allan, false, false).unwrap();
+  let taus = tau::generator(tau::TauAxis::Octave, 2, 128); // [2, 4, 8, ... 128]
+  let sample_rate = 1.0_f64; // [Hz]
+  let (dev, errs) = deviation(&data, &taus, Deviation::Allan, sample_rate, false, false).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/model.png" alt="alt text" width="500"/>
@@ -38,7 +39,8 @@ Improve statiscal confidence by using _overlapped_ formulae
   let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 128);
   let overlapping = true;
-  let (var, errs) = deviation(&data, &taus, Calculation::Allan, false, overlapping).unwrap();
+  let sampling_period = 1.0_f64; // [s]
+  let (var, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, false, overlapping).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
@@ -51,8 +53,9 @@ Improve statiscal confidence by using _overlapped_ formulae
   let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 10000);
   let is_fractional = true;
-  let ( adev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractional, false).unwrap();
-  let (oadev, errs) = deviation(&data, &taus, Calculation::Allan, is_fractional, true).unwrap();
+  let sampling_period = 1.0_f64; // [s]
+  let ( adev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, is_fractional, false).unwrap();
+  let (oadev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, is_fractional, true).unwrap();
 ```
 
 ### Tau axis generator
@@ -68,7 +71,7 @@ Several axis are known:
 * TauAxis::All requires more computation
 
 ```rust
-  let taus = tau::generator(tau::TauAxis::Decade, 10000); //log10
+  let taus = tau::generator(tau::TauAxis::Decade, 1.0, 10000.0); // [1.0, 10.0, 100.0, ..., 10000.0]
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-white-fm.png" alt="alt text" width="500"/>
@@ -77,7 +80,7 @@ Using TauAxis::All requires more computation but gives a total
 time granularity 
 
 ```rust
-  let taus = tau::generator(tau::TauAxis::All, 10000);
+  let taus = tau::generator(tau::TauAxis::All, 1.0, 100.0); // [1.0, 2.0, 3.0, ..., 99.0, 100.0]
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/adev-pink-pm.png" alt="alt text" width="500"/>
@@ -125,8 +128,8 @@ Some data generators were integrated or develpped for testing purposes:
 
 |  Noise |          White PM         |        Flicker PM        |   White FM   |  Flicker FM |
 |:------:|:-------------------------:|:------------------------:|:------------:|:-----------:|
-|  adev  |            -3/2           |            -1            |     -1/2     |      0      |
-|  mdev  |             -1            |            -1            |     -1/2     |      0      |
+|  adev  |             -1            |            -1            |     -1/2     |      0      |
+|  mdev  |            -3/2           |            -1            |     -1/2     |      0      |
 | method | utils::diff(noise::white) | utils::diff(noise::pink) | noise::white | noise::pink |
 
 ### Power Law Identification
@@ -134,8 +137,7 @@ Some data generators were integrated or develpped for testing purposes:
 #### NIST LAG1D autocorrelation
 [NIST Power Law identification method[[46]]](https://www.nist.gov/publications/handbook-frequency-stability-analysis)   
 
-This macro works well on homogeneous data series (single noise process),
-or series where one noise process is very dominant.
+This macro works well on data serie where one noise process is very dominant.
 
 ```rust
   let r = allantools::nist_lag1d_autocorr(&some_data);
@@ -155,10 +157,13 @@ a/b/c from a against b, b against c and c against a measurements.
    let c_against_a = some_measurements("c", "a");
    
    let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);
+   let sampling_period = 1.0;
+   let is_fractionnal = false;
+   let overlapping = true;
 
    let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
       three_cornered_hat(&a_against_b, &b_against_c, &c_against_a,
-         &taus, 1.0, false, true, Calculation::Allan).unwrap();
+         &taus, sampling_period, is_fractionnal, overlapping, Deviation::Allan).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/3corner.png" alt="alt text" width="450"/>

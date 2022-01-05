@@ -42,7 +42,7 @@ pub enum Deviation {
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (dev, err) : deviation & statistical error bars for each
 /// feasible `tau`
-pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fractional: bool, overlapping: bool) 
+pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_rate: f64, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
@@ -57,7 +57,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fraction
     for i in 0..taus.len() {
         match calc {
             Deviation::Allan => {
-                if let Ok((dev,err)) = calc_allan(&data, taus[i], false, overlapping) {
+                if let Ok((dev,err)) = calc_adev(&data, taus[i], sampling_rate, overlapping) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -65,7 +65,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fraction
                 }
             },
             Deviation::Modified => {
-                if let Ok((dev,err)) = calc_modified(&data, taus[i], false) {
+                if let Ok((dev,err)) = calc_mdev(&data, taus[i], sampling_rate) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -73,7 +73,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fraction
                 }
             },
             Deviation::Time => {
-                if let Ok((dev,err)) = calc_time(&data, taus[i], false) {
+                if let Ok((dev,err)) = calc_tdev(&data, taus[i], sampling_rate) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -94,19 +94,19 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, is_fraction
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (var, err) : variance & statistical error bars for each
 /// feasible `tau`
-pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, is_fractional: bool, overlapping: bool) 
+pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, sampling_rate: f64, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
-    let (mut var, err) = deviation(&data, &taus, dev, is_fractional, overlapping)?;
+    let (mut var, err) = deviation(&data, &taus, dev, sampling_rate, is_fractional, overlapping)?;
     for i in 0..var.len() {
         var[i] *= var[i]
     }
     Ok((var, err))
 }
-/// Computes Allan deviation/variance 
+/// Computes Allan deviation
 /// @ given tau on input data.   
 /// overlapping: true for overlapped deviation
-fn calc_allan (data: &Vec<f64>, tau: f64, is_var: bool, overlapping: bool) -> Result<(f64,f64), Error> {
+fn calc_adev (data: &Vec<f64>, tau: f64, sampling_rate: f64, overlapping: bool) -> Result<(f64,f64), Error> {
     let tau_u: usize = tau as usize;
     let stride: usize = match overlapping {
         true => 1,
@@ -122,24 +122,20 @@ fn calc_allan (data: &Vec<f64>, tau: f64, is_var: bool, overlapping: bool) -> Re
     let mut sum = 0.0_f64;
 
     while i < data.len() -2*tau_u {
-        sum += (data[i] - 2.0_f64*data[i+tau_u] + data[i+2*tau_u]).powf(2.0_f64);
+        sum += (data[i+2*tau_u] - 2.0_f64*data[i+tau_u] + data[i]).powf(2.0_f64);
         n += 1.0_f64;
         i += stride
     }
     
-    let mut dev = sum /2.0 /n;
-    if !is_var {
-        dev = dev.powf(0.5_f64)
-    }
-    dev /= tau; // * rate
-    
+    let mut dev = sum /2.0;
+    dev = (dev / n).powf(0.5_f64) / tau / sampling_rate; 
     Ok((dev, dev/(n.powf(0.5_f64))))
 }
 
-/// Computes modified Allan deviation/variance 
+/// Computes modified Allan deviation
 /// @ given tau on input data.   
 /// Mdev is always computed in overlapping fashion
-fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), Error> {
+fn calc_mdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64), Error> {
     let tau_u: usize = tau as usize;
     if tau_u > (data.len()-1) / 2 {
         return Err(Error::NotEnoughSamplesError)
@@ -150,7 +146,7 @@ fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), 
     let (mut v, mut sum) = (0.0_f64, 0.0_f64);
 
     while (i < data.len() -2*tau_u) && (i < tau_u) {
-        v += data[i] - 2.0_f64*data[i+tau_u] + data[i+2*tau_u];
+        v += data[i+2*tau_u] - 2.0_f64*data[i+tau_u] + data[i];
         i += 1
     }
     sum += v.powf(2.0_f64);
@@ -158,22 +154,19 @@ fn calc_modified (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), 
 
     i = 0;
     while i < data.len() -3*tau_u {
-        sum += (data[i] - 3.0_f64*data[i+tau_u] + 3.0_f64*data[i+2*tau_u] - data[i+3*tau_u]).powf(2.0_f64);
+        v += data[i+3*tau_u] - 3.0_f64*data[i+2*tau_u] + 3.0_f64*data[i+tau_u] - data[i];
+        sum += v.powf(2.0_f64);
         n += 1.0_f64;
         i += 1 
     }
-    let mut dev = sum /2.0 /n /tau /tau; // * rate
-    if !is_var {
-        dev = dev.powf(0.5_f64) / tau
-    }
-
+    let mut dev = sum /2.0 /tau /tau;
+    dev = (dev / n).powf(0.5_f64) / tau / sampling_rate;
     Ok((dev, dev/(n.powf(0.5_f64))))
 }
 
-/// Computes `time` deviation / variance
-/// at desired `tau` offset (s)
-fn calc_time (data: &Vec<f64>, tau: f64, is_var: bool) -> Result<(f64,f64), Error> {
-    let (mdev,mderr) = calc_modified(data, tau, is_var)?;
+/// Computes `time` deviation at desired `tau` offset (s)
+fn calc_tdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64), Error> {
+    let (mdev,mderr) = calc_mdev(data, tau, sampling_rate)?;
     Ok((
         mdev * tau / (3.0_f64).powf(0.5_f64),
         mderr // mderr / ns.powf(0.5_f64)
@@ -197,9 +190,9 @@ pub fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<
             overlapping: bool, calc: Deviation) 
                 -> Result<((Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>)), Error>
 {
-    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, is_fractional, overlapping)?;
-    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, is_fractional, overlapping)?;
-    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, is_fractional, overlapping)?;
+    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, sample_rate, is_fractional, overlapping)?;
+    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, sample_rate, is_fractional, overlapping)?;
+    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, sample_rate, is_fractional, overlapping)?;
     let (mut a, mut b, mut c): (Vec<f64>,Vec<f64>,Vec<f64>) = 
         (Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()));
     for i in 0..var_ab.len() {
@@ -212,20 +205,22 @@ pub fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<
 
 /// Structure optimized for `real time` / `rolling` computation,   
 /// refer to dedicated documentation
+#[derive(Debug)]
 pub struct RealTime {
     tau0: u64,
     buffer: Vec<f64>,
-    taus: Vec<f64>,
+    taus: Vec<usize>,
     devs: Vec<f64>,
 }
 
 impl RealTime {
-    /// Builds a new `real time` core
+    /// Builds a new `real time` core.   
+    /// tau_0: sampling period (s)
     pub fn new (tau_0: u64) -> RealTime {
         RealTime {
             tau0: tau_0,
             buffer: Vec::new(),
-            taus: Vec::new(),
+            taus: vec![tau_0 as usize],
             devs: Vec::new(),
         }
     }
@@ -233,9 +228,9 @@ impl RealTime {
     /// Pushes 1 symbol into the core
     pub fn push (&mut self, sample: f64) { 
         self.buffer.push(sample); 
-        if let Some((tau,dev)) = self.process() {
-            self.taus.push(tau);
-            self.devs.push(dev)
+        if self.new_tau() {
+            self.taus.push(
+                self.taus[self.taus.len()-1] * 2);
         }
     }
     
@@ -244,9 +239,9 @@ impl RealTime {
         for i in 0..samples.len() {
             self.buffer.push(samples[i]) 
         }
-        if let Some((tau,dev)) = self.process() {
-            self.taus.push(tau);
-            self.devs.push(dev)
+        if self.new_tau() {
+            self.taus.push(
+                self.taus[self.taus.len()-1] * 2);
         }
     }
 
@@ -254,9 +249,13 @@ impl RealTime {
     /// taus: currently evaluated time offsets (s)   
     /// devs: related adev estimates (n.a)   
     /// errs: error bar for each adev estimate
-    pub fn get (&self) -> (&Vec<f64>,&Vec<f64>,Vec<f64>) {
+    pub fn get (&self) -> (&Vec<usize>,&Vec<f64>,Vec<f64>) {
         let errs: Vec<f64> = Vec::with_capacity(self.devs.len());
         (&self.taus, &self.devs, errs)
+    }
+
+    fn new_tau (&self) -> bool {
+        self.buffer.len() >= 2*self.taus[self.taus.len()-1]+1
     }
 
     /// Processes internal data & evaluates
@@ -265,12 +264,29 @@ impl RealTime {
         None
     }
 
+    fn calc_estimator (&self, tau: f64) -> f64 {
+        let tau_u = tau as usize;
+        let mut sum = 0.0_f64;
+        for i in 0..self.buffer.len()-2*tau_u {
+            sum += (self.buffer[i] - 2.0_f64*self.buffer[i+tau_u] - self.buffer[i+2*tau_u]).powf(2.0_f64)
+        }
+        sum
+    }
+
+    /// Resets internal core
+    pub fn reset (&mut self) {
+        self.buffer.clear();
+        self.taus.clear();
+        self.devs.clear()
+    }
+
 }
 
 #[cfg(test)]
 pub mod plotutils;
 mod tests {
     use super::*;
+	use std::str::FromStr;
     #[test]
     fn test_deviation() {
         let N: usize = 10000;
@@ -301,13 +317,14 @@ mod tests {
             let is_fract = noise.contains("fm");
 
             for ax in &axes {
-                let taus = tau::tau_generator(*ax, 1000.0); 
+                let taus = tau::tau_generator(*ax, 1.0, 1000.0); 
                 for overlapping in vec![false, true] {
                     for calc in &calcs {
                         let (dev, err) = deviation(
                             &input,
                             &taus,
                             *calc,
+                            1.0_f64,
                             is_fract,
                             overlapping)
                                 .unwrap();
@@ -334,20 +351,100 @@ mod tests {
             }
         }
     }
+    /*
+    #[test]
+    fn test_against_models() {
+       let names: Vec<&str> = vec!["adev","mdev","tdev"];
+        let (mut xm_adev, mut ym_adev): (Vec<f64>,Vec<f64>) = (Vec::new(),Vec::new());
+        let (mut xm_mdev, mut ym_mdev): (Vec<f64>,Vec<f64>) = (Vec::new(),Vec::new());
+        let (mut xm_tdev, mut ym_tdev): (Vec<f64>,Vec<f64>) = (Vec::new(),Vec::new());
+        // read models
+        for i in 0..names.len() {
+            let content = std::fs::read_to_string(
+                std::path::PathBuf::from(
+                    env!("CARGO_MANIFEST_DIR").to_owned()
+                    +"/tests/holdover-" +names[i] +".csv"))
+                .unwrap();
+            let mut lines = content.lines();
+            let mut line = lines.next()
+                .unwrap();
+            loop {
+                let c = line.find(",").unwrap();
+                let x = f64::from_str(line.split_at(c).0.trim()).unwrap();
+                let y = f64::from_str(line.split_at(c+1).1.trim()).unwrap();
+
+                if names[i].eq("adev") {
+                    xm_adev.push(x);
+                    ym_adev.push(y)
+                } else if names[i].eq("mdev") {
+                    xm_mdev.push(x);
+                    ym_mdev.push(y);
+                } else {
+                    xm_tdev.push(x);
+                    ym_tdev.push(x)
+                }
+
+                if let Some(l) = lines.next() {
+                    line = l;
+                } else {
+                    break
+                }
+            }
+        }
+        // read raw
+        let mut raw_data: Vec<f64> = Vec::new();
+        let mut frac_raw_data: Vec<f64> = Vec::new();
+        let mut x_adev: Vec<f64> = Vec::new();
+        let mut y_adev: Vec<f64> = Vec::new();
+        let names: Vec<&str> = vec!["holdover"];
+        for i in 0..names.len() {
+            let content = std::fs::read_to_string(
+                std::path::PathBuf::from(
+                    env!("CARGO_MANIFEST_DIR").to_owned()
+                    +"/tests/" +names[i] +"-phase.csv"))
+                .unwrap();
+            let mut lines = content.lines();
+            let mut line = lines.next()
+                .unwrap();
+            loop {
+                let raw = f64::from_str(line.trim()).unwrap();
+                raw_data.push(raw);
+                if let Some(l) = lines.next() {
+                    line = l;
+                } else {
+                    break
+                }
+            }
+        }
+        let taus = tau::tau_generator(tau::TauAxis::Decade, 1.0_f64, 1000000.0_f64);
+        let (adev, err) = deviation(&raw_data, &taus, Deviation::Allan, 0.1_f64, false, true).unwrap();
+        let (mdev, err) = deviation(&raw_data, &taus, Deviation::Modified, 0.1_f64, false, true).unwrap();
+
+        let taus = tau::tau_generator(tau::TauAxis::Decade, 0.1_f64, 100000.0_f64);
+        plotutils::plotmodel_tb(
+            // models
+            &xm_adev, 
+            &ym_adev,
+            &xm_mdev,
+            &ym_mdev,
+            // adev from phase
+            &taus, &adev, &mdev,
+            )
+    }*/
     #[test]
     fn test_three_cornered_hat() {
         let pm_pink  = utils::diff(&noise::pink_noise(-10.0,1.0,10000),None);
         let fm_white = noise::white_noise(-10.0,1.0,10000);
         let fm_pink = noise::pink_noise(-10.0,1.0,10000);
-        let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);
+        let taus = tau::tau_generator(tau::TauAxis::Octave, 1.0_f64, 10000.0);
 
         let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
             three_cornered_hat(&pm_pink, &fm_white, &fm_pink,
                 &taus, 1.0, false, true, Deviation::Allan).unwrap();
 
-        let (adev_ab, err_ab) = deviation(&pm_pink , &taus, Deviation::Allan, false, true).unwrap();
-        let (adev_bc, err_bc) = deviation(&fm_white, &taus, Deviation::Allan, false, true).unwrap();
-        let (adev_ca, err_ca) = deviation(&fm_pink , &taus, Deviation::Allan, false, true).unwrap();
+        let (adev_ab, err_ab) = deviation(&pm_pink , &taus, Deviation::Allan, 1.0_f64, false, true).unwrap();
+        let (adev_bc, err_bc) = deviation(&fm_white, &taus, Deviation::Allan, 1.0_f64, false, true).unwrap();
+        let (adev_ca, err_ca) = deviation(&fm_pink , &taus, Deviation::Allan, 1.0_f64, false, true).unwrap();
 
         plotutils::plot3corner(
             &taus,
@@ -358,5 +455,15 @@ mod tests {
             (&adev_ca, &err_ca),
             (&dev_c,   &err_c),
         );
+    }
+
+    #[test]
+    fn test_realtime_core() {
+        let mut rt = RealTime::new(1);
+        let noise = noise::white_noise(1.0,1.0,100);
+        for i in 0..noise.len() {
+            rt.push(noise[i]);
+            println!("{:#?}", rt)
+        }
     }
 }

@@ -26,6 +26,10 @@ Compute Allan deviation over raw data:
 
 This lib against stable32 on a well known signal.
 
+### Error bars
+
+Only basic (biased) error bars following the 1/√N decay are currently produced
+
 ### Overlapping
 
 Improve statiscal confidence by using _overlapped_ formulae 

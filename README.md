@@ -19,8 +19,8 @@ Compute Allan deviation over raw data:
 ```rust
   use allantools::*;
   let taus = tau::generator(tau::TauAxis::Octave, 2, 128); // [2, 4, 8, ... 128]
-  let sample_rate = 1.0_f64; // [Hz]
-  let (dev, errs) = deviation(&data, &taus, Deviation::Allan, sample_rate, false, false).unwrap();
+  let sampling_period = 1.0_f64; // [s]
+  let (dev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, false, false).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/model.png" alt="alt text" width="500"/>

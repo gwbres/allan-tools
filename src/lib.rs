@@ -37,12 +37,12 @@ pub enum Deviation {
 /// for desired tau values.  
 /// data: input vector   
 /// taus: desired `tau` offsets (s)   
-/// sampling_rate: acquisition rate (Hz)   
+/// tau_0: sampling period (s)   
 /// is_fractional: true if input vector is made of fractional (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (dev, err) : deviation & statistical error bars for each
 /// feasible `tau`
-pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_rate: f64, is_fractional: bool, overlapping: bool) 
+pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, tau_0: f64, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
     tau::tau_sanity_checks(&taus)?;
@@ -57,7 +57,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_ra
     for i in 0..taus.len() {
         match calc {
             Deviation::Allan => {
-                if let Ok((dev,err)) = calc_adev(&data, taus[i], sampling_rate, overlapping) {
+                if let Ok((dev,err)) = calc_adev(&data, taus[i], tau_0, overlapping) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -65,7 +65,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_ra
                 }
             },
             Deviation::Modified => {
-                if let Ok((dev,err)) = calc_mdev(&data, taus[i], sampling_rate) {
+                if let Ok((dev,err)) = calc_mdev(&data, taus[i], tau_0) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -73,7 +73,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_ra
                 }
             },
             Deviation::Time => {
-                if let Ok((dev,err)) = calc_tdev(&data, taus[i], sampling_rate) {
+                if let Ok((dev,err)) = calc_tdev(&data, taus[i], tau_0) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -89,15 +89,15 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sampling_ra
 /// for desired tau values.  
 /// data: input vector   
 /// taus: desired `tau` offsets (s)   
-/// sampling_rate: acquisition rate (Hz)   
+/// tau_0: sampling period (s)   
 /// is_fractional: true if input vector is made of fractional (n.a) data
 /// overlapping: true if using overlapping interval (increase confidence / errbar narrows down faster)
 /// returns: (var, err) : variance & statistical error bars for each
 /// feasible `tau`
-pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, sampling_rate: f64, is_fractional: bool, overlapping: bool) 
+pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, tau_0: f64, is_fractional: bool, overlapping: bool) 
         -> Result<(Vec<f64>,Vec<f64>), Error> 
 {
-    let (mut var, err) = deviation(&data, &taus, dev, sampling_rate, is_fractional, overlapping)?;
+    let (mut var, err) = deviation(&data, &taus, dev, tau_0, is_fractional, overlapping)?;
     for i in 0..var.len() {
         var[i] *= var[i]
     }
@@ -106,7 +106,7 @@ pub fn variance (data: &Vec<f64>, taus: &Vec<f64>, dev: Deviation, sampling_rate
 /// Computes Allan deviation
 /// @ given tau on input data.   
 /// overlapping: true for overlapped deviation
-fn calc_adev (data: &Vec<f64>, tau: f64, sampling_rate: f64, overlapping: bool) -> Result<(f64,f64), Error> {
+fn calc_adev (data: &Vec<f64>, tau: f64, tau_0: f64, overlapping: bool) -> Result<(f64,f64), Error> {
     let tau_u: usize = tau as usize;
     let stride: usize = match overlapping {
         true => 1,
@@ -128,14 +128,15 @@ fn calc_adev (data: &Vec<f64>, tau: f64, sampling_rate: f64, overlapping: bool) 
     }
     
     let mut dev = sum /2.0;
-    dev = (dev / n).powf(0.5_f64) / tau / sampling_rate; 
+    dev = (dev / n).powf(0.5_f64) / tau / tau_0; 
     Ok((dev, dev/(n.powf(0.5_f64))))
 }
 
 /// Computes modified Allan deviation
 /// @ given tau on input data.   
+/// tau_0: sampling period (s).   
 /// Mdev is always computed in overlapping fashion
-fn calc_mdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64), Error> {
+fn calc_mdev (data: &Vec<f64>, tau: f64, tau_0: f64) -> Result<(f64,f64), Error> {
     let tau_u: usize = tau as usize;
     if tau_u > (data.len()-1) / 2 {
         return Err(Error::NotEnoughSamplesError)
@@ -160,13 +161,14 @@ fn calc_mdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64)
         i += 1 
     }
     let mut dev = sum /2.0 /tau /tau;
-    dev = (dev / n).powf(0.5_f64) / tau / sampling_rate;
+    dev = (dev / n).powf(0.5_f64) / tau / tau_0;
     Ok((dev, dev/(n.powf(0.5_f64))))
 }
 
-/// Computes `time` deviation at desired `tau` offset (s)
-fn calc_tdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64), Error> {
-    let (mdev,mderr) = calc_mdev(data, tau, sampling_rate)?;
+/// Computes `time` deviation at desired `tau` offset (s).   
+/// tau_0: sampling period (s)
+fn calc_tdev (data: &Vec<f64>, tau: f64, tau_0: f64) -> Result<(f64,f64), Error> {
+    let (mdev,mderr) = calc_mdev(data, tau, tau_0)?;
     Ok((
         mdev * tau / (3.0_f64).powf(0.5_f64),
         mderr // mderr / ns.powf(0.5_f64)
@@ -178,7 +180,7 @@ fn calc_tdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64)
 /// data_bc: B against C data   
 /// data_ca: C against A data   
 /// taus: desired tau offsets
-/// sample_rate: sampling rate (Hz)   
+/// tau_0: sampling period (s)   
 /// is_fractional: true if measured data are fractional errors   
 /// overlapping: true if computing in overlapped fashion    
 /// deviation: which deviation to compute    
@@ -186,13 +188,13 @@ fn calc_tdev (data: &Vec<f64>, tau: f64, sampling_rate: f64) -> Result<(f64,f64)
 /// where dev_a: deviation clock(a) and related error bar for all feasible tau offsets,
 ///       same thing for clock(b) and (c) 
 pub fn three_cornered_hat(data_ab: &Vec<f64>, data_bc: &Vec<f64>, data_ca: &Vec<f64>,
-        taus: &Vec<f64>, sample_rate: f64, is_fractional: bool, 
+        taus: &Vec<f64>, tau_0: f64, is_fractional: bool, 
             overlapping: bool, calc: Deviation) 
                 -> Result<((Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>), (Vec<f64>,Vec<f64>)), Error>
 {
-    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, sample_rate, is_fractional, overlapping)?;
-    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, sample_rate, is_fractional, overlapping)?;
-    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, sample_rate, is_fractional, overlapping)?;
+    let (var_ab, err_ab) = variance(&data_ab, &taus, calc, tau_0, is_fractional, overlapping)?;
+    let (var_bc, err_bc) = variance(&data_bc, &taus, calc, tau_0, is_fractional, overlapping)?;
+    let (var_ca, err_ca) = variance(&data_ca, &taus, calc, tau_0, is_fractional, overlapping)?;
     let (mut a, mut b, mut c): (Vec<f64>,Vec<f64>,Vec<f64>) = 
         (Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()),Vec::with_capacity(var_ab.len()));
     for i in 0..var_ab.len() {

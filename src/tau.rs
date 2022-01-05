@@ -47,8 +47,9 @@ pub fn tau_sanity_checks (taus: &Vec<f64>) -> Result<(), Error> {
 }
 
 /// Generate log(base) `TauAxis`
-fn log_n_tau_generator (tau_m: f64, base: f64) -> Vec<f64> {
-    let mut tau = 1.0_f64;
+/// ranging from [tau_0: tau_m]
+fn log_n_tau_generator (tau_0: f64, tau_m: f64, base: f64) -> Vec<f64> {
+    let mut tau = tau_0; 
     let mut ret: Vec<f64> = Vec::new();
     while tau <= tau_m {
         ret.push(tau);
@@ -57,18 +58,19 @@ fn log_n_tau_generator (tau_m: f64, base: f64) -> Vec<f64> {
     ret
 }
 
-/// Generates `Log2` axis
-fn log2_tau_generator (tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_m, 2.0_f64) }
-/// Generates `Log10` axis
-fn log10_tau_generator (tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_m, 10.0_f64) }
+/// Generates `Log2` axis ranging from [tau_0: tau_m]
+fn log2_tau_generator (tau_0: f64, tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_0, tau_m, 2.0_f64) }
+/// Generates `Log10` axis ranging from [tau_0: tau_m]
+fn log10_tau_generator (tau_0: f64, tau_m: f64) -> Vec<f64> { log_n_tau_generator(tau_0, tau_m, 10.0_f64) }
 
-/// Crates `tau` axis [1: `tau_m`]
+/// Crates `tau` axis [`tau_0`: `tau_m`]    
+/// `tau_0` is samling rate is standard use and adev calculations,   
 /// `tau_m` < 2^32 for TauAxis::All
-pub fn tau_generator (axis: TauAxis, tau_m: f64) -> Vec<f64> {
+pub fn tau_generator (axis: TauAxis, tau_0: f64, tau_m: f64) -> Vec<f64> {
     match axis {
-        TauAxis::Octave => log2_tau_generator(tau_m),
-        TauAxis::Decade => log10_tau_generator(tau_m),
-        TauAxis::All    => (1..tau_m as u32)
+        TauAxis::Octave => log2_tau_generator(tau_0, tau_m),
+        TauAxis::Decade => log10_tau_generator(tau_0, tau_m),
+        TauAxis::All    => (tau_0 as u32..tau_m as u32)
                         .map(f64::from)
                             .collect(),
     }
@@ -82,17 +84,17 @@ pub fn tau_generator (axis: TauAxis, tau_m: f64) -> Vec<f64> {
     /// Tests `Tau` generator
     fn test_tau_generator() {
         // Octave axis
-        let taus = tau_generator(TauAxis::Octave, 2.0_f64.powf(16.0));
+        let taus = tau_generator(TauAxis::Octave, 1.0_f64, 2.0_f64.powf(16.0));
         for i in 0..taus.len() {
             assert_eq!(taus[i], 2.0_f64.powf(i as f64))
         }
         // Decade axis
-        let taus = tau_generator(TauAxis::Decade, 10.0_f64.powf(16.0));
+        let taus = tau_generator(TauAxis::Decade, 1.0_f64, 10.0_f64.powf(16.0));
         for i in 0..taus.len() {
             assert_eq!(taus[i], 10.0_f64.powf(i as f64))
         }
         // Full axis
-        let taus = tau_generator(TauAxis::All, 1_000_000.0_f64);
+        let taus = tau_generator(TauAxis::All, 1.0_f64, 1_000_000.0_f64);
         for i in 0..taus.len() {
             assert_eq!(taus[i], i as f64 +1.0)
         }

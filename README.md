@@ -19,13 +19,13 @@ Compute Allan deviation over raw data:
 ```rust
   use allantools::*;
   let taus = tau::generator(tau::TauAxis::Octave, 2, 128); // [2, 4, 8, ... 128]
-  let sampling_period = 1.0_f64; // [s]
-  let (dev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, false, false).unwrap();
+  let sampling_rate = 1.0_f64; // [Hz]
+  let (dev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_rate, false, false).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/model.png" alt="alt text" width="500"/>
 
-This lib against stable32 on a well known signal.
+This lib against `Time Lab`. 
 
 ### Error bars
 
@@ -39,8 +39,8 @@ Improve statiscal confidence by using _overlapped_ formulae
   let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 128);
   let overlapping = true;
-  let sampling_period = 1.0_f64; // [s]
-  let (var, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, false, overlapping).unwrap();
+  let sampling_rate = 1.0_f64; // [Hz]
+  let (var, errs) = deviation(&data, &taus, Deviation::Allan, sampling_rate, false, overlapping).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/oadev-white-pm.png" width="500"/>
@@ -53,9 +53,9 @@ Improve statiscal confidence by using _overlapped_ formulae
   let data: Vec<f64> = some_data();
   let taus = tau::generator(tau::TauAxis::Octave, 10000);
   let is_fractional = true;
-  let sampling_period = 1.0_f64; // [s]
-  let ( adev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, is_fractional, false).unwrap();
-  let (oadev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_period, is_fractional, true).unwrap();
+  let sampling_rate = 1.0_f64; // [Hz]
+  let ( adev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_rate, is_fractional, false).unwrap();
+  let (oadev, errs) = deviation(&data, &taus, Deviation::Allan, sampling_rate, is_fractional, true).unwrap();
 ```
 
 ### Tau axis generator
@@ -157,13 +157,13 @@ a/b/c from a against b, b against c and c against a measurements.
    let c_against_a = some_measurements("c", "a");
    
    let taus = tau::tau_generator(tau::TauAxis::Octave, 10000.0);
-   let sampling_period = 1.0;
+   let sampling_rate = 1.0;
    let is_fractionnal = false;
    let overlapping = true;
 
    let ((dev_a, err_a),(dev_b,err_b),(dev_c,err_c)) =
       three_cornered_hat(&a_against_b, &b_against_c, &c_against_a,
-         &taus, sampling_period, is_fractionnal, overlapping, Deviation::Allan).unwrap();
+         &taus, sampling_rate, is_fractionnal, overlapping, Deviation::Allan).unwrap();
 ```
 
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/3corner.png" alt="alt text" width="450"/>

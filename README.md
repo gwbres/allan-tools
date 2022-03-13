@@ -1,18 +1,18 @@
 # allan-tools
 
+[![crates.io](https://img.shields.io/crates/v/allan-tools.svg)](https://crates.io/crates/allan-tools)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/gwbres/allan-tools/blob/main/LICENSE-APACHE)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/gwbres/allan-tools/blob/main/LICENSE-MIT) 
+[![crates.io](https://img.shields.io/crates/d/allan-tools.svg)](https://crates.io/crates/allan-tools)   
 [![Rust](https://github.com/gwbres/allan-tools/actions/workflows/rust.yml/badge.svg)](https://github.com/gwbres/allan-tools/actions/workflows/rust.yml)
 [![crates.io](https://docs.rs/allan-tools/badge.svg)](https://docs.rs/allan-tools/badge.svg)
-
-[![crates.io](https://img.shields.io/crates/v/allan-tools.svg)](https://crates.io/crates/allan-tools)
-[![crates.io](https://img.shields.io/crates/d/allan-tools.svg)](https://crates.io/crates/allan-tools)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Allantools (python lib) portage to Rust
 
 This library allows easy computations of Allan deviation & similar statistics.   
 These statistical methods are mostly used in system stability studies.
 
-### Variances / Deviations
+## Allan and other deviations
 
 Compute Allan deviation over raw data:
 
@@ -26,6 +26,14 @@ Compute Allan deviation over raw data:
 <img src="https://github.com/gwbres/allan-tools/blob/main/tests/model.png" alt="alt text" width="500"/>
 
 This lib against `Time Lab`. 
+
+### Known calculations
+
+* Deviation::Allan `adev`
+* Deviation::Modified `mdev`
+* Deviation::Time `tdev` (not fully tested yet)
+* Deviation::Hadamard `hdev` (not fully tested yet)
+* Deviation::Gcov `gcov` allan covariances (not tested yet)
 
 ### Error bars
 

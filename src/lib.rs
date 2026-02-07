@@ -60,9 +60,10 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sample_rate
     let mut errs: Vec<f64> = Vec::new();
 
     for i in 0..taus.len() {
+        let tau = taus[i] * sample_rate;
         match calc {
             Deviation::Allan => {
-                if let Ok((dev, err)) = calc_adev(&data, taus[i], sample_rate, overlapping) {
+                if let Ok((dev, err)) = calc_adev(&data, tau, sample_rate, overlapping) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -70,7 +71,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sample_rate
                 }
             },
             Deviation::Modified => {
-                if let Ok((dev, err)) = calc_mdev(&data, taus[i], sample_rate) {
+                if let Ok((dev, err)) = calc_mdev(&data, tau, sample_rate) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -78,7 +79,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sample_rate
                 }
             },
             Deviation::Time => {
-                if let Ok((dev, err)) = calc_tdev(&data, taus[i], sample_rate) {
+                if let Ok((dev, err)) = calc_tdev(&data, tau, sample_rate) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
@@ -86,7 +87,7 @@ pub fn deviation (data: &Vec<f64>, taus: &Vec<f64>, calc: Deviation, sample_rate
                 }
             },
             Deviation::Hadamard => {
-                if let Ok((dev, err)) = calc_hdev(&data, taus[i], sample_rate, overlapping) {
+                if let Ok((dev, err)) = calc_hdev(&data, tau, sample_rate, overlapping) {
                     devs.push(dev);
                     errs.push(err)
                 } else {
